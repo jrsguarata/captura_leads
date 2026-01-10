@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { GraduationCap, Users, Award, Clock, MessageCircle, CheckCircle } from 'lucide-react';
+import { GraduationCap, Users, Award, Clock, MessageCircle, CheckCircle, HelpCircle } from 'lucide-react';
 import InteresseModal from '../components/InteresseModal';
-import DuvidasForm from '../components/DuvidasForm';
+import DuvidasModal from '../components/DuvidasModal';
 
 const LandingPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInteresseModalOpen, setIsInteresseModalOpen] = useState(false);
+  const [isDuvidasModalOpen, setIsDuvidasModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -18,12 +19,20 @@ const LandingPage: React.FC = () => {
             <p className="mb-8 text-xl text-primary-100">
               Aprenda com os melhores profissionais do mercado em um ambiente interativo e prático
             </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="rounded-lg bg-white px-8 py-4 text-lg font-semibold text-primary-600 transition-all hover:bg-gray-100 hover:shadow-lg"
-            >
-              Tenho Interesse
-            </button>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => setIsInteresseModalOpen(true)}
+                className="rounded-lg bg-white px-8 py-4 text-lg font-semibold text-primary-600 transition-all hover:bg-gray-100 hover:shadow-lg"
+              >
+                Tenho Interesse
+              </button>
+              <button
+                onClick={() => setIsDuvidasModalOpen(true)}
+                className="rounded-lg bg-primary-400 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-primary-500 hover:shadow-lg"
+              >
+                Tenho Dúvida
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -96,7 +105,7 @@ const LandingPage: React.FC = () => {
           </div>
           <div className="mt-10 text-center">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => setIsInteresseModalOpen(true)}
               className="rounded-lg bg-primary-600 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-primary-700 hover:shadow-lg"
             >
               Quero me Inscrever
@@ -107,15 +116,18 @@ const LandingPage: React.FC = () => {
 
       {/* Questions Section */}
       <section className="container-custom py-16">
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-8 text-center">
-            <MessageCircle className="mx-auto mb-4 h-12 w-12 text-primary-600" />
-            <h2 className="mb-4 text-3xl font-bold text-gray-900">Ainda tem dúvidas?</h2>
-            <p className="text-gray-600">
-              Envie suas perguntas e nossa equipe entrará em contato em breve
-            </p>
-          </div>
-          <DuvidasForm />
+        <div className="mx-auto max-w-2xl text-center">
+          <MessageCircle className="mx-auto mb-4 h-12 w-12 text-primary-600" />
+          <h2 className="mb-4 text-3xl font-bold text-gray-900">Ainda tem dúvidas?</h2>
+          <p className="mb-8 text-gray-600">
+            Envie suas perguntas e nossa equipe entrará em contato em breve
+          </p>
+          <button
+            onClick={() => setIsDuvidasModalOpen(true)}
+            className="rounded-lg bg-primary-600 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-primary-700 hover:shadow-lg"
+          >
+            Enviar Dúvida
+          </button>
         </div>
       </section>
 
@@ -128,8 +140,9 @@ const LandingPage: React.FC = () => {
         </div>
       </footer>
 
-      {/* Modal de Interesse */}
-      <InteresseModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* Modais */}
+      <InteresseModal isOpen={isInteresseModalOpen} onClose={() => setIsInteresseModalOpen(false)} />
+      <DuvidasModal isOpen={isDuvidasModalOpen} onClose={() => setIsDuvidasModalOpen(false)} />
     </div>
   );
 };
