@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { UserPlus, Eye, Edit, UserX, UserCheck, X } from 'lucide-react';
+import { UserPlus, Eye, Edit, UserX, UserCheck, X, Send } from 'lucide-react';
 import api from '../../services/api';
-import { Interessado, InteressadoStatus } from '../../types';
+import { Interessado, InteressadoStatus, Resposta, Followup, FollowupCanal, User } from '../../types';
 
 const statusOptions = [
   { value: 'lead', label: 'Lead' },
@@ -21,6 +21,12 @@ const statusColors: Record<string, string> = {
   interrupted: 'bg-gray-100 text-gray-800',
 };
 
+const canalOptions = [
+  { value: FollowupCanal.VOZ, label: 'Voz' },
+  { value: FollowupCanal.WHATSAPP, label: 'WhatsApp' },
+  { value: FollowupCanal.EMAIL, label: 'Email' },
+];
+
 const InteressadosPage: React.FC = () => {
   const [interessados, setInteressados] = useState<Interessado[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +35,22 @@ const InteressadosPage: React.FC = () => {
   const [selectedInteressado, setSelectedInteressado] = useState<Interessado | null>(null);
   const [editForm, setEditForm] = useState({ nome: '', email: '', celular: '', status: InteressadoStatus.LEAD });
 
+  // Estados para respostas e follow-ups
+  const [respostas, setRespostas] = useState<Resposta[]>([]);
+  const [followups, setFollowups] = useState<Followup[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [userNamesMap, setUserNamesMap] = useState<Record<string, string>>({});
+
+  // Estado para novo follow-up
+  const [novoFollowup, setNovoFollowup] = useState({
+    texto: '',
+    canal: FollowupCanal.WHATSAPP,
+  });
+  const [savingFollowup, setSavingFollowup] = useState(false);
+
   useEffect(() => {
     loadInteressados();
+    loadUsers();
   }, []);
 
   const loadInteressados = async () => {
@@ -41,6 +61,36 @@ const InteressadosPage: React.FC = () => {
       console.error('Erro ao carregar interessados:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const response = await api.get('/users');
+      const users = response.data.data || response.data;
+      const namesMap: Record<string, string> = {};
+      users.forEach((user: User) => {
+        namesMap[user.id] = user.nome;
+      });
+      setUserNamesMap(namesMap);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+    }
+  };
+
+  const loadInteressadoDetails = async (interessadoId: string) => {
+    setLoadingDetails(true);
+    try {
+      const [respostasRes, followupsRes] = await Promise.all([
+        api.get(`/respostas/interessado/${interessadoId}`),
+        api.get(`/followup/interessado/${interessadoId}`),
+      ]);
+      setRespostas(respostasRes.data);
+      setFollowups(followupsRes.data);
+    } catch (error) {
+      console.error('Erro ao carregar detalhes do interessado:', error);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -55,9 +105,10 @@ const InteressadosPage: React.FC = () => {
     }
   };
 
-  const handleView = (interessado: Interessado) => {
+  const handleView = async (interessado: Interessado) => {
     setSelectedInteressado(interessado);
     setViewModalOpen(true);
+    await loadInteressadoDetails(interessado.id);
   };
 
   const handleEdit = (interessado: Interessado) => {
@@ -81,6 +132,45 @@ const InteressadosPage: React.FC = () => {
     } catch (error) {
       console.error('Erro ao atualizar interessado:', error);
     }
+  };
+
+  const handleSaveFollowup = async () => {
+    if (!selectedInteressado || !novoFollowup.texto.trim()) {
+      alert('Por favor, preencha o texto do follow-up');
+      return;
+    }
+
+    setSavingFollowup(true);
+    try {
+      await api.post('/followup', {
+        interessadoId: selectedInteressado.id,
+        texto: novoFollowup.texto,
+        canal: novoFollowup.canal,
+      });
+
+      // Recarregar follow-ups
+      await loadInteressadoDetails(selectedInteressado.id);
+
+      // Limpar formulário
+      setNovoFollowup({
+        texto: '',
+        canal: FollowupCanal.WHATSAPP,
+      });
+    } catch (error) {
+      console.error('Erro ao salvar follow-up:', error);
+      alert('Erro ao salvar follow-up');
+    } finally {
+      setSavingFollowup(false);
+    }
+  };
+
+  const getUserName = (userId?: string) => {
+    if (!userId) return 'N/A';
+    return userNamesMap[userId] || 'Usuário não encontrado';
+  };
+
+  const getCanalLabel = (canal: FollowupCanal) => {
+    return canalOptions.find((c) => c.value === canal)?.label || canal;
   };
 
   const getStatusLabel = (status: InteressadoStatus) => {
@@ -211,8 +301,8 @@ const InteressadosPage: React.FC = () => {
 
       {/* Modal de Visualização */}
       {viewModalOpen && selectedInteressado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto p-4">
+          <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl my-8">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">Visualizar Interessado</h3>
               <button
@@ -222,39 +312,141 @@ const InteressadosPage: React.FC = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Nome</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedInteressado.nome}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">E-mail</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedInteressado.email}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Celular</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedInteressado.celular}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {getStatusLabel(selectedInteressado.status)}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Ativo</label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {selectedInteressado.isActive ? 'Sim' : 'Não'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Criado em</label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {new Date(selectedInteressado.criadoEm).toLocaleString('pt-BR')}
-                </p>
+
+            {/* Informações Básicas */}
+            <div className="space-y-4 mb-6">
+              <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">Informações Básicas</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Nome</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedInteressado.nome}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedInteressado.email}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Celular</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedInteressado.celular}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {getStatusLabel(selectedInteressado.status)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Ativo</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedInteressado.isActive ? 'Sim' : 'Não'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Criado em</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {new Date(selectedInteressado.criadoEm).toLocaleString('pt-BR')}
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="mt-6 flex justify-end">
+
+            {loadingDetails ? (
+              <div className="flex justify-center py-8">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+              </div>
+            ) : (
+              <>
+                {/* Respostas de Qualificação */}
+                <div className="space-y-4 mb-6">
+                  <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                    Respostas de Qualificação ({respostas.length})
+                  </h4>
+                  {respostas.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">Nenhuma resposta registrada</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {respostas.map((resposta) => (
+                        <div key={resposta.id} className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm font-medium text-gray-700">{resposta.pergunta}</p>
+                          <p className="text-sm text-gray-900 mt-1">{resposta.resposta}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(resposta.criadoEm).toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Follow-ups */}
+                <div className="space-y-4 mb-6">
+                  <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                    Histórico de Follow-ups ({followups.length})
+                  </h4>
+                  {followups.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">Nenhum follow-up registrado</p>
+                  ) : (
+                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                      {followups.map((followup) => (
+                        <div key={followup.id} className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-500">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-900 whitespace-pre-wrap">{followup.texto}</p>
+                              <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                                <span className="font-medium">Canal: {getCanalLabel(followup.canal)}</span>
+                                <span>•</span>
+                                <span>Por: {getUserName(followup.criadoPor)}</span>
+                                <span>•</span>
+                                <span>{new Date(followup.criadoEm).toLocaleString('pt-BR')}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Novo Follow-up */}
+                <div className="space-y-4 border-t pt-4">
+                  <h4 className="text-lg font-semibold text-gray-800">Adicionar Follow-up</h4>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Canal</label>
+                    <select
+                      value={novoFollowup.canal}
+                      onChange={(e) => setNovoFollowup({ ...novoFollowup, canal: e.target.value as FollowupCanal })}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    >
+                      {canalOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Texto do Follow-up</label>
+                    <textarea
+                      value={novoFollowup.texto}
+                      onChange={(e) => setNovoFollowup({ ...novoFollowup, texto: e.target.value })}
+                      rows={4}
+                      placeholder="Descreva o contato realizado..."
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSaveFollowup}
+                    disabled={savingFollowup || !novoFollowup.texto.trim()}
+                    className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    <Send className="h-4 w-4" />
+                    {savingFollowup ? 'Salvando...' : 'Salvar Follow-up'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            <div className="mt-6 flex justify-end border-t pt-4">
               <button
                 onClick={() => setViewModalOpen(false)}
                 className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
