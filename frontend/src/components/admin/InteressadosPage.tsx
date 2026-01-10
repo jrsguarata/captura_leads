@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { UserPlus, Eye, Edit, UserX, UserCheck, X, Send } from 'lucide-react';
+import { UserPlus, Eye, Edit, UserX, UserCheck, X } from 'lucide-react';
 import api from '../../services/api';
 import { Interessado, InteressadoStatus, Resposta, Followup, FollowupCanal, User } from '../../types';
 
@@ -49,7 +49,6 @@ const InteressadosPage: React.FC = () => {
     texto: '',
     canal: FollowupCanal.WHATSAPP,
   });
-  const [savingFollowup, setSavingFollowup] = useState(false);
 
   useEffect(() => {
     loadInteressados();
@@ -136,41 +135,23 @@ const InteressadosPage: React.FC = () => {
     if (!selectedInteressado) return;
 
     try {
+      // Salvar alterações do interessado
       await api.patch(`/interessados/${selectedInteressado.id}`, editForm);
+
+      // Se houver texto no follow-up, salvá-lo também
+      if (novoFollowup.texto.trim()) {
+        await api.post('/followup', {
+          interessadoId: selectedInteressado.id,
+          texto: novoFollowup.texto,
+          canal: novoFollowup.canal,
+        });
+      }
+
       setEditModalOpen(false);
       loadInteressados();
     } catch (error) {
       console.error('Erro ao atualizar interessado:', error);
-    }
-  };
-
-  const handleSaveFollowup = async () => {
-    if (!selectedInteressado || !novoFollowup.texto.trim()) {
-      alert('Por favor, preencha o texto do follow-up');
-      return;
-    }
-
-    setSavingFollowup(true);
-    try {
-      await api.post('/followup', {
-        interessadoId: selectedInteressado.id,
-        texto: novoFollowup.texto,
-        canal: novoFollowup.canal,
-      });
-
-      // Recarregar follow-ups
-      await loadInteressadoDetails(selectedInteressado.id);
-
-      // Limpar formulário
-      setNovoFollowup({
-        texto: '',
-        canal: FollowupCanal.WHATSAPP,
-      });
-    } catch (error) {
-      console.error('Erro ao salvar follow-up:', error);
-      alert('Erro ao salvar follow-up');
-    } finally {
-      setSavingFollowup(false);
+      alert('Erro ao salvar alterações');
     }
   };
 
@@ -550,23 +531,17 @@ const InteressadosPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Texto do Follow-up</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Texto do Follow-up (opcional)
+                    </label>
                     <textarea
                       value={novoFollowup.texto}
                       onChange={(e) => setNovoFollowup({ ...novoFollowup, texto: e.target.value })}
                       rows={4}
-                      placeholder="Descreva o contato realizado..."
+                      placeholder="Descreva o contato realizado... (será salvo junto com as alterações)"
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                     />
                   </div>
-                  <button
-                    onClick={handleSaveFollowup}
-                    disabled={savingFollowup || !novoFollowup.texto.trim()}
-                    className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    <Send className="h-4 w-4" />
-                    {savingFollowup ? 'Salvando...' : 'Salvar Follow-up'}
-                  </button>
                 </div>
               </>
             )}
