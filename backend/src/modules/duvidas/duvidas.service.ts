@@ -40,6 +40,7 @@ export class DuvidasService {
   async findOne(id: string): Promise<Duvida> {
     const duvida = await this.duvidasRepository.findOne({
       where: { id },
+      withDeleted: true,
     });
 
     if (!duvida) {
@@ -58,6 +59,11 @@ export class DuvidasService {
 
     Object.assign(duvida, updateDuvidaDto);
     duvida.alteradoPor = currentUserId;
+
+    // Se o status mudou para RESPONDIDA, definir isActive como false
+    if ((updateDuvidaDto as any).status === DuvidaStatus.RESPONDIDA) {
+      duvida.isActive = false;
+    }
 
     return this.duvidasRepository.save(duvida);
   }
