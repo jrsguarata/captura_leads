@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, UseGuards, Query } from '@n
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { RespostasService } from './respostas.service';
 import { CreateRespostaDto } from './dto/create-resposta.dto';
+import { CreateRespostasBatchDto } from './dto/create-respostas-batch.dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -24,8 +25,8 @@ export class RespostasController {
   @Post('batch')
   @ApiOperation({ summary: 'Criar múltiplas respostas (público para landing page)' })
   @ApiResponse({ status: 201, description: 'Respostas criadas com sucesso' })
-  createBatch(@Body() respostas: CreateRespostaDto[]) {
-    return this.respostasService.createBatch(respostas);
+  createBatch(@Body() batchDto: CreateRespostasBatchDto) {
+    return this.respostasService.createBatch(batchDto);
   }
 
   @Get()

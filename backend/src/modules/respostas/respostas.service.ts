@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Resposta } from './entities/resposta.entity';
 import { CreateRespostaDto } from './dto/create-resposta.dto';
+import { CreateRespostasBatchDto } from './dto/create-respostas-batch.dto';
 
 @Injectable()
 export class RespostasService {
@@ -21,12 +22,14 @@ export class RespostasService {
   }
 
   async createBatch(
-    respostas: CreateRespostaDto[],
+    batchDto: CreateRespostasBatchDto,
     currentUserId?: string,
   ): Promise<Resposta[]> {
-    const respostasEntities = respostas.map((dto) =>
+    const respostasEntities = batchDto.respostas.map((item) =>
       this.respostasRepository.create({
-        ...dto,
+        interessadoId: batchDto.interessadoId,
+        pergunta: item.pergunta,
+        resposta: item.resposta,
         criadoPor: currentUserId,
       }),
     );
