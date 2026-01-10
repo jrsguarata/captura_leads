@@ -8,6 +8,7 @@ interface AuthContextData {
   loading: boolean;
   signIn: (credentials: LoginDto) => Promise<void>;
   signOut: () => void;
+  updateUser: (userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -60,8 +61,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     delete api.defaults.headers.common['Authorization'];
   };
 
+  const updateUser = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, signed: !!user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, signed: !!user, loading, signIn, signOut, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

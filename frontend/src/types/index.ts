@@ -13,8 +13,13 @@ export enum InteressadoStatus {
 }
 
 export enum DuvidaStatus {
-  PENDING = 'pending',
-  ANSWERED = 'answered',
+  FEITA = 'feita',
+  RESPONDIDA = 'respondida',
+  PROSPECT = 'prospect',
+  NEGOTIATION = 'negotiation',
+  WIN = 'win',
+  LOST = 'lost',
+  INTERRUPTED = 'interrupted',
 }
 
 export enum FollowupCanal {
@@ -29,8 +34,12 @@ export interface User {
   email: string;
   perfil: UserRole;
   isActive: boolean;
+  criadoPor?: string;
   criadoEm: string;
+  alteradoPor?: string;
   alteradoEm: string;
+  desativadoPor?: string;
+  desativadoEm?: string;
 }
 
 export interface LoginDto {
@@ -98,17 +107,19 @@ export interface Duvida {
   nome: string;
   email: string;
   celular: string;
-  mensagem: string;
+  duvida: string;
+  resposta?: string;
   status: DuvidaStatus;
   criadoEm: string;
   alteradoEm: string;
+  desativadoEm?: string;
 }
 
 export interface CreateDuvidaDto {
   nome: string;
   email: string;
   celular: string;
-  mensagem: string;
+  duvida: string;
 }
 
 export interface Followup {

@@ -39,8 +39,10 @@ export class FollowupController {
   @ApiQuery({ name: 'offset', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Lista de follow-ups' })
-  findAll(@Query('offset') offset: number = 0, @Query('limit') limit: number = 200) {
-    return this.followupService.findAll(offset, limit);
+  findAll(@Query('offset') offset?: string, @Query('limit') limit?: string) {
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    const parsedLimit = limit ? parseInt(limit, 10) : 200;
+    return this.followupService.findAll(parsedOffset, parsedLimit);
   }
 
   @Get('interessado/:interessadoId')
@@ -74,7 +76,7 @@ export class FollowupController {
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Deletar follow-up (soft delete - apenas ADMIN)' })
   @ApiResponse({ status: 200, description: 'Follow-up deletado com sucesso' })
-  remove(@Param('id') id: string) {
-    return this.followupService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.followupService.remove(id, user.id);
   }
 }

@@ -20,6 +20,9 @@ export class Interessado extends BaseEntity {
   })
   status: InteressadoStatus;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @OneToMany('Resposta', 'interessado')
   respostas: any[];
 

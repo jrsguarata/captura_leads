@@ -43,13 +43,17 @@ export class UsersService {
       skip: offset,
       take: Math.min(limit, 200),
       order: { criadoEm: 'DESC' },
+      withDeleted: true,
     });
 
     return { data, total };
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
 
     if (!user) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
@@ -100,8 +104,8 @@ export class UsersService {
     }
 
     user.isActive = false;
-    user.deactivatedAt = new Date();
-    user.deactivatedBy = currentUserId;
+    user.desativadoEm = new Date();
+    user.desativadoPor = currentUserId;
     user.alteradoPor = currentUserId;
 
     await this.usersRepository.save(user);
@@ -115,8 +119,8 @@ export class UsersService {
     }
 
     user.isActive = true;
-    user.desativadoEm = undefined;
-    user.desativadoPor = undefined;
+    user.desativadoEm = null as any;
+    user.desativadoPor = null as any;
     user.alteradoPor = currentUserId;
 
     await this.usersRepository.save(user);

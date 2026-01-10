@@ -7,7 +7,9 @@ import {
   HelpCircle,
   Settings,
   BarChart3,
-  LogOut
+  LogOut,
+  UserCircle,
+  Lock
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
@@ -16,6 +18,8 @@ import QualificacaoPage from '../components/admin/QualificacaoPage';
 import DuvidasPage from '../components/admin/DuvidasPage';
 import UsersPage from '../components/admin/UsersPage';
 import DashboardHome from '../components/admin/DashboardHome';
+import ProfilePage from '../components/shared/ProfilePage';
+import PasswordPage from '../components/shared/PasswordPage';
 
 const AdminDashboard: React.FC = () => {
   const { signOut, user } = useAuth();
@@ -27,6 +31,8 @@ const AdminDashboard: React.FC = () => {
     { icon: MessageSquare, label: 'Perguntas de Qualificação', path: '/sistema/admin/qualificacao' },
     { icon: HelpCircle, label: 'Dúvidas', path: '/sistema/admin/duvidas' },
     { icon: Users, label: 'Usuários', path: '/sistema/admin/usuarios' },
+    { icon: UserCircle, label: 'Perfil', path: '/sistema/admin/perfil' },
+    { icon: Lock, label: 'Senha', path: '/sistema/admin/senha' },
   ];
 
   return (
@@ -63,6 +69,8 @@ const AdminDashboard: React.FC = () => {
             <Route path="/qualificacao" element={<QualificacaoPage />} />
             <Route path="/duvidas" element={<DuvidasPage />} />
             <Route path="/usuarios" element={<UsersPage />} />
+            <Route path="/perfil" element={<ProfilePage />} />
+            <Route path="/senha" element={<PasswordPage />} />
             <Route path="*" element={<Navigate to="/sistema/admin" replace />} />
           </Routes>
         </main>

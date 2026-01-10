@@ -11,4 +11,7 @@ export class Qualificacao extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   opcoes?: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 }

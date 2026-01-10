@@ -32,6 +32,7 @@ export class QualificacaoService {
       skip: offset,
       take: Math.min(limit, 200),
       order: { criadoEm: 'DESC' },
+      withDeleted: true,
     });
 
     return { data, total };
@@ -70,8 +71,10 @@ export class QualificacaoService {
     return this.qualificacaoRepository.save(qualificacao);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, currentUserId: string): Promise<void> {
     const qualificacao = await this.findOne(id);
+    qualificacao.desativadoPor = currentUserId;
+    await this.qualificacaoRepository.save(qualificacao);
     await this.qualificacaoRepository.softRemove(qualificacao);
   }
 }

@@ -31,6 +31,7 @@ export class DuvidasService {
       skip: offset,
       take: Math.min(limit, 200),
       order: { criadoEm: 'DESC' },
+      withDeleted: true,
     });
 
     return { data, total };
@@ -61,8 +62,10 @@ export class DuvidasService {
     return this.duvidasRepository.save(duvida);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, currentUserId: string): Promise<void> {
     const duvida = await this.findOne(id);
+    duvida.desativadoPor = currentUserId;
+    await this.duvidasRepository.save(duvida);
     await this.duvidasRepository.softRemove(duvida);
   }
 

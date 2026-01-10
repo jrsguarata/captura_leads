@@ -35,6 +35,7 @@ export class InteressadosService {
       take: Math.min(limit, 200),
       order: { criadoEm: 'DESC' },
       relations: ['respostas', 'followups'],
+      withDeleted: true,
     });
 
     return { data, total };
@@ -66,8 +67,10 @@ export class InteressadosService {
     return this.interessadosRepository.save(interessado);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, currentUserId: string): Promise<void> {
     const interessado = await this.findOne(id);
+    interessado.desativadoPor = currentUserId;
+    await this.interessadosRepository.save(interessado);
     await this.interessadosRepository.softRemove(interessado);
   }
 

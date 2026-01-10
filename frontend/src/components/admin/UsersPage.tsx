@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { UserPlus, Shield } from 'lucide-react';
+import { UserPlus, Shield, Eye, Edit, UserX, UserCheck, X } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { User, UserRole } from '../../types';
 
 const UsersPage: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState({ nome: '', email: '', perfil: UserRole.OPERATOR });
+  const [userNamesMap, setUserNamesMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadUsers();
@@ -14,12 +21,25 @@ const UsersPage: React.FC = () => {
   const loadUsers = async () => {
     try {
       const response = await api.get('/users');
-      setUsers(response.data.data || response.data);
+      const loadedUsers = response.data.data || response.data;
+      setUsers(loadedUsers);
+
+      // Criar mapa de IDs para nomes
+      const namesMap: Record<string, string> = {};
+      loadedUsers.forEach((user: User) => {
+        namesMap[user.id] = user.nome;
+      });
+      setUserNamesMap(namesMap);
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getUserName = (userId?: string) => {
+    if (!userId) return 'N/A';
+    return userNamesMap[userId] || 'Usuário não encontrado';
   };
 
   const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
@@ -29,6 +49,29 @@ const UsersPage: React.FC = () => {
       loadUsers();
     } catch (error) {
       console.error('Erro ao atualizar status do usuário:', error);
+    }
+  };
+
+  const handleView = (user: User) => {
+    setSelectedUser(user);
+    setViewModalOpen(true);
+  };
+
+  const handleEdit = (user: User) => {
+    setSelectedUser(user);
+    setEditForm({ nome: user.nome, email: user.email, perfil: user.perfil });
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedUser) return;
+
+    try {
+      await api.patch(`/users/${selectedUser.id}`, editForm);
+      setEditModalOpen(false);
+      loadUsers();
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
     }
   };
 
@@ -111,21 +154,195 @@ const UsersPage: React.FC = () => {
                       {new Date(user.criadoEm).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
-                      <button
-                        onClick={() => toggleUserStatus(user.id, user.isActive)}
-                        className={`rounded px-3 py-1 text-xs font-semibold ${
-                          user.isActive
-                            ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                            : 'bg-green-100 text-green-800 hover:bg-green-200'
-                        }`}
-                      >
-                        {user.isActive ? 'Desativar' : 'Ativar'}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleView(user)}
+                          className="rounded-lg p-2 text-blue-600 hover:bg-blue-50 transition-colors"
+                          title="Visualizar"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="rounded-lg p-2 text-gray-600 hover:bg-gray-50 transition-colors"
+                          title="Editar"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        {currentUser?.id !== user.id && (
+                          <button
+                            onClick={() => toggleUserStatus(user.id, user.isActive)}
+                            className={`rounded-lg p-2 transition-colors ${
+                              user.isActive
+                                ? 'text-red-600 hover:bg-red-50'
+                                : 'text-green-600 hover:bg-green-50'
+                            }`}
+                            title={user.isActive ? 'Desativar' : 'Ativar'}
+                          >
+                            {user.isActive ? (
+                              <UserX className="h-4 w-4" />
+                            ) : (
+                              <UserCheck className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Visualização */}
+      {viewModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Visualizar Usuário</h3>
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nome</label>
+                <p className="mt-1 text-sm text-gray-900">{selectedUser.nome}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                <p className="mt-1 text-sm text-gray-900">{selectedUser.email}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Perfil</label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedUser.perfil === UserRole.ADMIN ? 'Administrador' : 'Operador'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedUser.isActive ? 'Ativo' : 'Inativo'}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Criado por</label>
+                  <p className="mt-1 text-sm text-gray-900">{getUserName(selectedUser.criadoPor)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Criado em</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {new Date(selectedUser.criadoEm).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Alterado por</label>
+                  <p className="mt-1 text-sm text-gray-900">{getUserName(selectedUser.alteradoPor)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Alterado em</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {new Date(selectedUser.alteradoEm).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+              {selectedUser.desativadoEm && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Desativado por</label>
+                    <p className="mt-1 text-sm text-gray-900">{getUserName(selectedUser.desativadoPor)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Desativado em</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {new Date(selectedUser.desativadoEm).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Edição */}
+      {editModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Editar Usuário</h3>
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nome</label>
+                <input
+                  type="text"
+                  value={editForm.nome}
+                  onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Perfil</label>
+                <select
+                  value={editForm.perfil}
+                  onChange={(e) => setEditForm({ ...editForm, perfil: e.target.value as UserRole })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  disabled={currentUser?.id === selectedUser.id}
+                >
+                  <option value={UserRole.OPERATOR}>Operador</option>
+                  <option value={UserRole.ADMIN}>Administrador</option>
+                </select>
+                {currentUser?.id === selectedUser.id && (
+                  <p className="mt-1 text-xs text-gray-500">Você não pode alterar seu próprio perfil</p>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
+              >
+                Salvar
+              </button>
+            </div>
           </div>
         </div>
       )}

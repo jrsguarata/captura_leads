@@ -68,8 +68,10 @@ export class RespostasService {
     return resposta;
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, currentUserId: string): Promise<void> {
     const resposta = await this.findOne(id);
+    resposta.desativadoPor = currentUserId;
+    await this.respostasRepository.save(resposta);
     await this.respostasRepository.softRemove(resposta);
   }
 }

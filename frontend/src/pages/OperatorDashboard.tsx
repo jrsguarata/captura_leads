@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { UserPlus, HelpCircle, BarChart3, LogOut } from 'lucide-react';
+import { UserPlus, HelpCircle, BarChart3, LogOut, UserCircle, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import InteressadosPage from '../components/operator/InteressadosPage';
 import DuvidasPage from '../components/operator/DuvidasPage';
 import OperatorDashboardHome from '../components/operator/OperatorDashboardHome';
+import ProfilePage from '../components/shared/ProfilePage';
+import PasswordPage from '../components/shared/PasswordPage';
 
 const OperatorDashboard: React.FC = () => {
   const { signOut, user } = useAuth();
@@ -15,6 +17,8 @@ const OperatorDashboard: React.FC = () => {
     { icon: BarChart3, label: 'Dashboard', path: '/sistema/operator' },
     { icon: UserPlus, label: 'Interessados', path: '/sistema/operator/interessados' },
     { icon: HelpCircle, label: 'Dúvidas', path: '/sistema/operator/duvidas' },
+    { icon: UserCircle, label: 'Perfil', path: '/sistema/operator/perfil' },
+    { icon: Lock, label: 'Senha', path: '/sistema/operator/senha' },
   ];
 
   return (
@@ -49,6 +53,8 @@ const OperatorDashboard: React.FC = () => {
             <Route path="/" element={<OperatorDashboardHome />} />
             <Route path="/interessados" element={<InteressadosPage />} />
             <Route path="/duvidas" element={<DuvidasPage />} />
+            <Route path="/perfil" element={<ProfilePage />} />
+            <Route path="/senha" element={<PasswordPage />} />
             <Route path="*" element={<Navigate to="/sistema/operator" replace />} />
           </Routes>
         </main>

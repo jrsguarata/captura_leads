@@ -75,8 +75,10 @@ export class FollowupService {
     return this.followupRepository.save(followup);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, currentUserId: string): Promise<void> {
     const followup = await this.findOne(id);
+    followup.desativadoPor = currentUserId;
+    await this.followupRepository.save(followup);
     await this.followupRepository.softRemove(followup);
   }
 }

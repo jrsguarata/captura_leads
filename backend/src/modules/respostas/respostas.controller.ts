@@ -5,7 +5,9 @@ import { CreateRespostaDto } from './dto/create-resposta.dto';
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
+import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { UserRole } from '@common/enums';
+import { User } from '@modules/users/entities/user.entity';
 
 @ApiTags('respostas')
 @Controller('respostas')
@@ -33,8 +35,10 @@ export class RespostasController {
   @ApiQuery({ name: 'offset', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Lista de respostas' })
-  findAll(@Query('offset') offset: number = 0, @Query('limit') limit: number = 200) {
-    return this.respostasService.findAll(offset, limit);
+  findAll(@Query('offset') offset?: string, @Query('limit') limit?: string) {
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    const parsedLimit = limit ? parseInt(limit, 10) : 200;
+    return this.respostasService.findAll(parsedOffset, parsedLimit);
   }
 
   @Get('interessado/:interessadoId')
@@ -62,7 +66,7 @@ export class RespostasController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Deletar resposta (soft delete - apenas ADMIN)' })
   @ApiResponse({ status: 200, description: 'Resposta deletada com sucesso' })
-  remove(@Param('id') id: string) {
-    return this.respostasService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.respostasService.remove(id, user.id);
   }
 }

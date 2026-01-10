@@ -26,7 +26,7 @@ const DuvidasPage: React.FC = () => {
   const toggleStatus = async (id: string, currentStatus: DuvidaStatus) => {
     try {
       const newStatus =
-        currentStatus === DuvidaStatus.PENDING ? DuvidaStatus.ANSWERED : DuvidaStatus.PENDING;
+        currentStatus === DuvidaStatus.FEITA ? DuvidaStatus.RESPONDIDA : DuvidaStatus.FEITA;
       await api.patch(`/duvidas/${id}`, { status: newStatus });
       loadDuvidas();
     } catch (error) {
@@ -38,7 +38,7 @@ const DuvidasPage: React.FC = () => {
     (item) =>
       item.nome.toLowerCase().includes(search.toLowerCase()) ||
       item.email.toLowerCase().includes(search.toLowerCase()) ||
-      item.mensagem.toLowerCase().includes(search.toLowerCase()),
+      item.duvida.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -50,7 +50,7 @@ const DuvidasPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar por nome, email ou mensagem..."
+            placeholder="Buscar por nome, email ou dúvida..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -82,15 +82,15 @@ const DuvidasPage: React.FC = () => {
                     <button
                       onClick={() => toggleStatus(duvida.id, duvida.status)}
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        duvida.status === DuvidaStatus.ANSWERED
+                        duvida.status === DuvidaStatus.RESPONDIDA
                           ? 'bg-green-100 text-green-800 hover:bg-green-200'
                           : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                       }`}
                     >
-                      {duvida.status === DuvidaStatus.ANSWERED ? 'Respondida' : 'Pendente'}
+                      {duvida.status === DuvidaStatus.RESPONDIDA ? 'Respondida' : 'Feita'}
                     </button>
                   </div>
-                  <p className="text-gray-700">{duvida.mensagem}</p>
+                  <p className="text-gray-700">{duvida.duvida}</p>
                   <p className="mt-2 text-xs text-gray-500">
                     Enviada em {new Date(duvida.criadoEm).toLocaleString('pt-BR')}
                   </p>

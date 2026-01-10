@@ -25,4 +25,7 @@ export class Duvida extends BaseEntity {
     default: DuvidaStatus.FEITA,
   })
   status: DuvidaStatus;
+
+  @Column({ default: true })
+  isActive: boolean;
 }

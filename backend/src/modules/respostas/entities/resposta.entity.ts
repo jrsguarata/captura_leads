@@ -18,4 +18,7 @@ export class Resposta extends BaseEntity {
 
   @Column({ type: 'text' })
   resposta: string;
+
+  @Column({ default: true })
+  isActive: boolean;
 }

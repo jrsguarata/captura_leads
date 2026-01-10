@@ -42,8 +42,10 @@ export class QualificacaoController {
   @ApiQuery({ name: 'offset', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Lista de perguntas' })
-  findAll(@Query('offset') offset: number = 0, @Query('limit') limit: number = 200) {
-    return this.qualificacaoService.findAll(offset, limit);
+  findAll(@Query('offset') offset?: string, @Query('limit') limit?: string) {
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    const parsedLimit = limit ? parseInt(limit, 10) : 200;
+    return this.qualificacaoService.findAll(parsedOffset, parsedLimit);
   }
 
   @Get('active')
@@ -83,7 +85,7 @@ export class QualificacaoController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Deletar pergunta (soft delete - apenas ADMIN)' })
   @ApiResponse({ status: 200, description: 'Pergunta deletada com sucesso' })
-  remove(@Param('id') id: string) {
-    return this.qualificacaoService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.qualificacaoService.remove(id, user.id);
   }
 }

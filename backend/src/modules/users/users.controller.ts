@@ -44,18 +44,20 @@ export class UsersController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Lista de usuários' })
   findAll(
-    @Query('offset') offset: number = 0,
-    @Query('limit') limit: number = 200,
-    @CurrentUser() user: User,
+    @Query('offset') offset?: string,
+    @Query('limit') limit?: string,
+    @CurrentUser() user?: User,
   ) {
     // OPERATOR só vê seus próprios dados
-    if (user.perfil === UserRole.OPERATOR) {
+    if (user?.perfil === UserRole.OPERATOR) {
       return {
         data: [user],
         total: 1,
       };
     }
-    return this.usersService.findAll(offset, limit);
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    const parsedLimit = limit ? parseInt(limit, 10) : 200;
+    return this.usersService.findAll(parsedOffset, parsedLimit);
   }
 
   @Get(':id')

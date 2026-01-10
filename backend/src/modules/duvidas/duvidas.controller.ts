@@ -40,8 +40,10 @@ export class DuvidasController {
   @ApiQuery({ name: 'offset', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Lista de dúvidas' })
-  findAll(@Query('offset') offset: number = 0, @Query('limit') limit: number = 200) {
-    return this.duvidasService.findAll(offset, limit);
+  findAll(@Query('offset') offset?: string, @Query('limit') limit?: string) {
+    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    const parsedLimit = limit ? parseInt(limit, 10) : 200;
+    return this.duvidasService.findAll(parsedOffset, parsedLimit);
   }
 
   @Get('status/:status')
@@ -82,7 +84,7 @@ export class DuvidasController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Deletar dúvida (soft delete - apenas ADMIN)' })
   @ApiResponse({ status: 200, description: 'Dúvida deletada com sucesso' })
-  remove(@Param('id') id: string) {
-    return this.duvidasService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.duvidasService.remove(id, user.id);
   }
 }

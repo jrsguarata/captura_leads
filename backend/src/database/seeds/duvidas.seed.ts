@@ -41,7 +41,6 @@ export async function seedDuvidas(dataSource: DataSource): Promise<void> {
       email: 'patricia@example.com',
       celular: '11910987654',
       duvida: 'O curso oferece certificado?',
-      resposta: null,
       status: DuvidaStatus.FEITA,
     },
     {
@@ -57,7 +56,6 @@ export async function seedDuvidas(dataSource: DataSource): Promise<void> {
       email: 'camila@example.com',
       celular: '11998765432',
       duvida: 'Quais são os horários disponíveis?',
-      resposta: null,
       status: DuvidaStatus.FEITA,
     },
   ];

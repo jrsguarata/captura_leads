@@ -22,4 +22,7 @@ export class Followup extends BaseEntity {
     enum: FollowupCanal,
   })
   canal: FollowupCanal;
+
+  @Column({ default: true })
+  isActive: boolean;
 }

@@ -10,7 +10,7 @@ const DuvidasForm: React.FC = () => {
     nome: '',
     email: '',
     celular: '',
-    mensagem: '',
+    duvida: '',
   });
 
   const handleChange = (
@@ -26,7 +26,7 @@ const DuvidasForm: React.FC = () => {
     try {
       await api.post('/duvidas', formData);
       setSuccess(true);
-      setFormData({ nome: '', email: '', celular: '', mensagem: '' });
+      setFormData({ nome: '', email: '', celular: '', duvida: '' });
 
       // Resetar mensagem de sucesso após 5 segundos
       setTimeout(() => setSuccess(false), 5000);
@@ -93,8 +93,8 @@ const DuvidasForm: React.FC = () => {
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">Sua Dúvida *</label>
         <textarea
-          name="mensagem"
-          value={formData.mensagem}
+          name="duvida"
+          value={formData.duvida}
           onChange={handleChange}
           required
           minLength={10}
