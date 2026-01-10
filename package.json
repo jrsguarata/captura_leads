@@ -1,0 +1,27 @@
+{
+  "name": "captura-leads",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de Captura de Leads para Cursos Presenciais",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "clean": "rm -rf node_modules backend/node_modules frontend/node_modules",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:rebuild": "docker-compose up -d --build"
+  },
+  "keywords": [
+    "leads",
+    "crm",
+    "nestjs",
+    "react",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC"
+}
