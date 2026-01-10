@@ -41,7 +41,10 @@ const InteressadosPage: React.FC = () => {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [userNamesMap, setUserNamesMap] = useState<Record<string, string>>({});
 
-  // Estado para novo follow-up
+  // Estado para aba ativa no modal de visualização
+  const [activeTab, setActiveTab] = useState<'dados' | 'respostas' | 'followups'>('dados');
+
+  // Estado para novo follow-up (no modal de edição)
   const [novoFollowup, setNovoFollowup] = useState({
     texto: '',
     canal: FollowupCanal.WHATSAPP,
@@ -107,11 +110,12 @@ const InteressadosPage: React.FC = () => {
 
   const handleView = async (interessado: Interessado) => {
     setSelectedInteressado(interessado);
+    setActiveTab('dados'); // Resetar para primeira aba
     setViewModalOpen(true);
     await loadInteressadoDetails(interessado.id);
   };
 
-  const handleEdit = (interessado: Interessado) => {
+  const handleEdit = async (interessado: Interessado) => {
     setSelectedInteressado(interessado);
     setEditForm({
       nome: interessado.nome,
@@ -120,6 +124,12 @@ const InteressadosPage: React.FC = () => {
       status: interessado.status,
     });
     setEditModalOpen(true);
+    await loadInteressadoDetails(interessado.id);
+    // Limpar form de follow-up
+    setNovoFollowup({
+      texto: '',
+      canal: FollowupCanal.WHATSAPP,
+    });
   };
 
   const handleSaveEdit = async () => {
@@ -299,7 +309,7 @@ const InteressadosPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Visualização */}
+      {/* Modal de Visualização com Abas */}
       {viewModalOpen && selectedInteressado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto p-4">
           <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl my-8">
@@ -313,41 +323,40 @@ const InteressadosPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Informações Básicas */}
-            <div className="space-y-4 mb-6">
-              <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">Informações Básicas</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Nome</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedInteressado.nome}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">E-mail</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedInteressado.email}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Celular</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedInteressado.celular}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {getStatusLabel(selectedInteressado.status)}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Ativo</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {selectedInteressado.isActive ? 'Sim' : 'Não'}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Criado em</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {new Date(selectedInteressado.criadoEm).toLocaleString('pt-BR')}
-                  </p>
-                </div>
-              </div>
+            {/* Abas */}
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="flex -mb-px space-x-8">
+                <button
+                  onClick={() => setActiveTab('dados')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'dados'
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Dados Básicos
+                </button>
+                <button
+                  onClick={() => setActiveTab('respostas')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'respostas'
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Respostas ({respostas.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('followups')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'followups'
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Follow-ups ({followups.length})
+                </button>
+              </nav>
             </div>
 
             {loadingDetails ? (
@@ -356,59 +365,175 @@ const InteressadosPage: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Respostas de Qualificação */}
-                <div className="space-y-4 mb-6">
-                  <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">
-                    Respostas de Qualificação ({respostas.length})
-                  </h4>
-                  {respostas.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">Nenhuma resposta registrada</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {respostas.map((resposta) => (
-                        <div key={resposta.id} className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-sm font-medium text-gray-700">{resposta.pergunta}</p>
-                          <p className="text-sm text-gray-900 mt-1">{resposta.resposta}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(resposta.criadoEm).toLocaleString('pt-BR')}
-                          </p>
-                        </div>
-                      ))}
+                {/* Aba: Dados Básicos */}
+                {activeTab === 'dados' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Nome</label>
+                        <p className="mt-1 text-sm text-gray-900">{selectedInteressado.nome}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                        <p className="mt-1 text-sm text-gray-900">{selectedInteressado.email}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Celular</label>
+                        <p className="mt-1 text-sm text-gray-900">{selectedInteressado.celular}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Status</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {getStatusLabel(selectedInteressado.status)}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Ativo</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.isActive ? 'Sim' : 'Não'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Criado em</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {new Date(selectedInteressado.criadoEm).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {/* Follow-ups */}
-                <div className="space-y-4 mb-6">
-                  <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">
-                    Histórico de Follow-ups ({followups.length})
-                  </h4>
-                  {followups.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">Nenhum follow-up registrado</p>
-                  ) : (
-                    <div className="space-y-3 max-h-64 overflow-y-auto">
-                      {followups.map((followup) => (
-                        <div key={followup.id} className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-500">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <p className="text-sm text-gray-900 whitespace-pre-wrap">{followup.texto}</p>
-                              <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
-                                <span className="font-medium">Canal: {getCanalLabel(followup.canal)}</span>
-                                <span>•</span>
-                                <span>Por: {getUserName(followup.criadoPor)}</span>
-                                <span>•</span>
-                                <span>{new Date(followup.criadoEm).toLocaleString('pt-BR')}</span>
-                              </div>
+                {/* Aba: Respostas de Qualificação */}
+                {activeTab === 'respostas' && (
+                  <div className="space-y-4">
+                    {respostas.length === 0 ? (
+                      <p className="text-sm text-gray-500 italic text-center py-8">
+                        Nenhuma resposta registrada
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {respostas.map((resposta) => (
+                          <div key={resposta.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <p className="text-sm font-medium text-gray-700 mb-2">{resposta.pergunta}</p>
+                            <p className="text-sm text-gray-900">{resposta.resposta}</p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              {new Date(resposta.criadoEm).toLocaleString('pt-BR')}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Aba: Follow-ups */}
+                {activeTab === 'followups' && (
+                  <div className="space-y-4">
+                    {followups.length === 0 ? (
+                      <p className="text-sm text-gray-500 italic text-center py-8">
+                        Nenhum follow-up registrado
+                      </p>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {followups.map((followup) => (
+                          <div key={followup.id} className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                            <p className="text-sm text-gray-900 whitespace-pre-wrap mb-3">{followup.texto}</p>
+                            <div className="flex items-center gap-3 text-xs text-gray-600">
+                              <span className="font-medium">Canal: {getCanalLabel(followup.canal)}</span>
+                              <span>•</span>
+                              <span>Por: {getUserName(followup.criadoPor)}</span>
+                              <span>•</span>
+                              <span>{new Date(followup.criadoEm).toLocaleString('pt-BR')}</span>
                             </div>
                           </div>
-                        </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="mt-6 flex justify-end border-t pt-4">
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Edição com Follow-up */}
+      {editModalOpen && selectedInteressado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto p-4">
+          <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl my-8">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Editar Interessado</h3>
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {loadingDetails ? (
+              <div className="flex justify-center py-8">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+              </div>
+            ) : (
+              <>
+                {/* Dados para Edição */}
+                <div className="space-y-4 mb-6">
+                  <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">Dados Básicos</h4>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Nome</label>
+                    <input
+                      type="text"
+                      value={editForm.nome}
+                      onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                    <input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Celular</label>
+                    <input
+                      type="text"
+                      value={editForm.celular}
+                      onChange={(e) => setEditForm({ ...editForm, celular: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <select
+                      value={editForm.status}
+                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value as InteressadoStatus })}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    >
+                      {statusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
                       ))}
-                    </div>
-                  )}
+                    </select>
+                  </div>
                 </div>
 
-                {/* Novo Follow-up */}
-                <div className="space-y-4 border-t pt-4">
+                {/* Adicionar Follow-up */}
+                <div className="space-y-4 border-t pt-4 mb-6">
                   <h4 className="text-lg font-semibold text-gray-800">Adicionar Follow-up</h4>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Canal</label>
@@ -443,78 +568,33 @@ const InteressadosPage: React.FC = () => {
                     {savingFollowup ? 'Salvando...' : 'Salvar Follow-up'}
                   </button>
                 </div>
+
+                {/* Histórico de Follow-ups */}
+                {followups.length > 0 && (
+                  <div className="space-y-4 border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Histórico de Follow-ups ({followups.length})
+                    </h4>
+                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                      {followups.map((followup) => (
+                        <div key={followup.id} className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-500">
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap">{followup.texto}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                            <span className="font-medium">Canal: {getCanalLabel(followup.canal)}</span>
+                            <span>•</span>
+                            <span>Por: {getUserName(followup.criadoPor)}</span>
+                            <span>•</span>
+                            <span>{new Date(followup.criadoEm).toLocaleString('pt-BR')}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
-            <div className="mt-6 flex justify-end border-t pt-4">
-              <button
-                onClick={() => setViewModalOpen(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Edição */}
-      {editModalOpen && selectedInteressado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900">Editar Interessado</h3>
-              <button
-                onClick={() => setEditModalOpen(false)}
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Nome</label>
-                <input
-                  type="text"
-                  value={editForm.nome}
-                  onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">E-mail</label>
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Celular</label>
-                <input
-                  type="text"
-                  value={editForm.celular}
-                  onChange={(e) => setEditForm({ ...editForm, celular: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value as InteressadoStatus })}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex justify-end gap-2 border-t pt-4">
               <button
                 onClick={() => setEditModalOpen(false)}
                 className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
@@ -525,7 +605,7 @@ const InteressadosPage: React.FC = () => {
                 onClick={handleSaveEdit}
                 className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
               >
-                Salvar
+                Salvar Alterações
               </button>
             </div>
           </div>
