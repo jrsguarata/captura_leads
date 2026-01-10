@@ -568,29 +568,6 @@ const InteressadosPage: React.FC = () => {
                     {savingFollowup ? 'Salvando...' : 'Salvar Follow-up'}
                   </button>
                 </div>
-
-                {/* Histórico de Follow-ups */}
-                {followups.length > 0 && (
-                  <div className="space-y-4 border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      Histórico de Follow-ups ({followups.length})
-                    </h4>
-                    <div className="space-y-3 max-h-64 overflow-y-auto">
-                      {followups.map((followup) => (
-                        <div key={followup.id} className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-500">
-                          <p className="text-sm text-gray-900 whitespace-pre-wrap">{followup.texto}</p>
-                          <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
-                            <span className="font-medium">Canal: {getCanalLabel(followup.canal)}</span>
-                            <span>•</span>
-                            <span>Por: {getUserName(followup.criadoPor)}</span>
-                            <span>•</span>
-                            <span>{new Date(followup.criadoEm).toLocaleString('pt-BR')}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </>
             )}
 
