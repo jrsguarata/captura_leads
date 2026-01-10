@@ -1,21 +1,9 @@
 version: '3.8'
 
-services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: captura_leads_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: captura_leads
-    ports:
-      - '5434:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - captura_leads_network
+# Docker Compose para usar com PostgreSQL local
+# Uso: docker-compose -f docker-compose.local-db.yml up -d
 
+services:
   backend:
     build:
       context: ./backend
@@ -25,7 +13,7 @@ services:
     ports:
       - '3001:3000'
     environment:
-      DB_HOST: postgres
+      DB_HOST: host.docker.internal  # Conecta ao host (PostgreSQL local)
       DB_PORT: 5432
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
@@ -35,14 +23,14 @@ services:
       JWT_REFRESH_SECRET: your-refresh-secret-key-change-in-production
       JWT_REFRESH_EXPIRES_IN: 7d
       NODE_ENV: development
-    depends_on:
-      - postgres
     volumes:
       - ./backend:/app
       - /app/node_modules
     networks:
       - captura_leads_network
     command: npm run start:dev
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   frontend:
     build:
@@ -62,9 +50,6 @@ services:
     networks:
       - captura_leads_network
     command: npm run dev
-
-volumes:
-  postgres_data:
 
 networks:
   captura_leads_network:

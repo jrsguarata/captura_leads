@@ -19,6 +19,7 @@ import { FollowupModule } from './modules/followup/followup.module';
       ...dataSourceOptions,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
+      synchronize: true, // Auto-create tables in development
     }),
     AuthModule,
     UsersModule,

@@ -35,7 +35,7 @@ export async function seedQualificacao(dataSource: DataSource): Promise<void> {
     {
       questao: 'Possui alguma observação ou dúvida adicional?',
       obrigatoriedade: false,
-      opcoes: null, // Campo livre de texto
+      opcoes: undefined, // Campo livre de texto
     },
   ];
 

@@ -14,7 +14,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Login de usuário' })
   @ApiResponse({ status: 200, description: 'Login realizado com sucesso' })
   @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
-  async login(@Request() req, @Body() loginDto: LoginDto) {
+  async login(@Request() req: any, @Body() loginDto: LoginDto) {
     return this.authService.login(req.user);
   }
 

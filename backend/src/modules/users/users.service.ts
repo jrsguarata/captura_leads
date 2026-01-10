@@ -115,8 +115,8 @@ export class UsersService {
     }
 
     user.isActive = true;
-    user.deactivatedAt = null;
-    user.deactivatedBy = null;
+    user.desativadoEm = undefined;
+    user.desativadoPor = undefined;
     user.alteradoPor = currentUserId;
 
     await this.usersRepository.save(user);

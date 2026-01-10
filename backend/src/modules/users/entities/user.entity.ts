@@ -23,10 +23,4 @@ export class User extends BaseEntity {
 
   @Column({ default: true })
   isActive: boolean;
-
-  @Column({ name: 'desativado_em', type: 'timestamp', nullable: true })
-  deactivatedAt?: Date;
-
-  @Column({ name: 'desativado_por', type: 'uuid', nullable: true })
-  deactivatedBy?: string;
 }
