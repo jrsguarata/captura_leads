@@ -39,7 +39,7 @@ const LandingPage: React.FC = () => {
       {/* Benefits Section */}
       <section className="py-20 px-8 max-w-6xl mx-auto">
         <h2 className="text-3xl font-serif text-[#D4AF37] mb-10">
-          Por que escolher nossos cursos?
+          O que você vai aprender
         </h2>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
