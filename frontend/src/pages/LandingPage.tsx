@@ -47,9 +47,9 @@ const LandingPage: React.FC = () => {
             <div className="mb-4 flex justify-center">
               <GraduationCap className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold text-center">Professores Qualificados</h3>
+            <h3 className="mb-2 text-xl font-semibold text-center">Exossomos</h3>
             <p className="text-gray-300 text-center">
-              Profissionais atuantes no mercado com experiência prática
+              Vesículas extracelulares que transportam informações entre células, promovendo regeneração e rejuvenescimento tecidual
             </p>
           </div>
 
@@ -57,9 +57,9 @@ const LandingPage: React.FC = () => {
             <div className="mb-4 flex justify-center">
               <Users className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold text-center">Turmas Reduzidas</h3>
+            <h3 className="mb-2 text-xl font-semibold text-center">PDRN</h3>
             <p className="text-gray-300 text-center">
-              Máximo de 15 alunos para garantir atenção personalizada
+              Polidesoxirribonucleotídeo que estimula a regeneração celular, melhora a cicatrização e rejuvenesce a pele
             </p>
           </div>
 
@@ -67,9 +67,9 @@ const LandingPage: React.FC = () => {
             <div className="mb-4 flex justify-center">
               <Award className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold text-center">Certificado Reconhecido</h3>
+            <h3 className="mb-2 text-xl font-semibold text-center">Scaffold</h3>
             <p className="text-gray-300 text-center">
-              Certificação válida em todo território nacional
+              Estrutura de suporte biológico que guia o crescimento e organização de novos tecidos durante a regeneração
             </p>
           </div>
 
@@ -77,9 +77,9 @@ const LandingPage: React.FC = () => {
             <div className="mb-4 flex justify-center">
               <Clock className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold text-center">Horários Flexíveis</h3>
+            <h3 className="mb-2 text-xl font-semibold text-center">Biohacking Tecidual</h3>
             <p className="text-gray-300 text-center">
-              Opções de turmas durante a semana e aos sábados
+              Técnicas avançadas de otimização biológica para regeneração e rejuvenescimento dos tecidos corporais
             </p>
           </div>
         </div>
