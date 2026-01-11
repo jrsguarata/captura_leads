@@ -12,11 +12,11 @@ const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section className="min-h-screen flex flex-col justify-center px-8 max-w-6xl mx-auto">
         <h1 className="text-4xl md:text-6xl font-serif text-[#D4AF37] mb-6">
-          Transforme sua Carreira com Nossos Cursos Presenciais
+          Cosmetologia Estética e Regenerativa
         </h1>
 
         <p className="text-lg text-gray-300 max-w-2xl mb-8">
-          Aprenda com os melhores profissionais do mercado em um ambiente interativo e prático
+          Formação presencial avançada em Estética Regenerativa, com foco prático, ciência aplicada e resultados reais.
         </p>
 
         <div className="flex gap-4 flex-wrap">
