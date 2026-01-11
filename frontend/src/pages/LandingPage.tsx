@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GraduationCap, Users, Award, Clock, MessageCircle, CheckCircle, HelpCircle } from 'lucide-react';
+import { GraduationCap, Users, Award, Clock, MessageCircle, CheckCircle } from 'lucide-react';
 import InteresseModal from '../components/InteresseModal';
 import DuvidasModal from '../components/DuvidasModal';
 
@@ -8,83 +8,90 @@ const LandingPage: React.FC = () => {
   const [isDuvidasModalOpen, setIsDuvidasModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="bg-[#0B0B0B] text-white">
       {/* Hero Section */}
-      <header className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="container-custom py-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="mb-6 text-5xl font-bold leading-tight">
-              Transforme sua Carreira com Nossos Cursos Presenciais
-            </h1>
-            <p className="mb-8 text-xl text-primary-100">
-              Aprenda com os melhores profissionais do mercado em um ambiente interativo e prático
-            </p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => setIsInteresseModalOpen(true)}
-                className="rounded-lg bg-white px-8 py-4 text-lg font-semibold text-primary-600 transition-all hover:bg-gray-100 hover:shadow-lg"
-              >
-                Tenho Interesse
-              </button>
-              <button
-                onClick={() => setIsDuvidasModalOpen(true)}
-                className="rounded-lg bg-primary-400 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-primary-500 hover:shadow-lg"
-              >
-                Tenho Dúvida
-              </button>
-            </div>
-          </div>
+      <section className="min-h-screen flex flex-col justify-center px-8 max-w-6xl mx-auto">
+        <h1 className="text-4xl md:text-6xl font-serif text-[#D4AF37] mb-6">
+          Transforme sua Carreira com Nossos Cursos Presenciais
+        </h1>
+
+        <p className="text-lg text-gray-300 max-w-2xl mb-8">
+          Aprenda com os melhores profissionais do mercado em um ambiente interativo e prático
+        </p>
+
+        <div className="flex gap-4 flex-wrap">
+          <button
+            onClick={() => setIsInteresseModalOpen(true)}
+            className="bg-[#D4AF37] text-black px-8 py-4 text-lg font-semibold rounded hover:opacity-90 transition-opacity"
+          >
+            Tenho Interesse
+          </button>
+
+          <button
+            onClick={() => setIsDuvidasModalOpen(true)}
+            className="border border-[#D4AF37] text-[#D4AF37] px-8 py-4 text-lg rounded hover:bg-[#D4AF37] hover:text-black transition-all"
+          >
+            Tenho Dúvida
+          </button>
         </div>
-      </header>
+      </section>
 
       {/* Benefits Section */}
-      <section className="container-custom py-16">
-        <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">
+      <section className="py-20 px-8 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-serif text-[#D4AF37] mb-10">
           Por que escolher nossos cursos?
         </h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg bg-white p-6 text-center shadow-md transition-shadow hover:shadow-lg">
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="border border-gray-700 p-6 rounded-lg hover:border-[#D4AF37] transition-colors">
             <div className="mb-4 flex justify-center">
-              <GraduationCap className="h-12 w-12 text-primary-600" />
+              <GraduationCap className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Professores Qualificados</h3>
-            <p className="text-gray-600">
+            <h3 className="mb-2 text-xl font-semibold text-center">Professores Qualificados</h3>
+            <p className="text-gray-300 text-center">
               Profissionais atuantes no mercado com experiência prática
             </p>
           </div>
 
-          <div className="rounded-lg bg-white p-6 text-center shadow-md transition-shadow hover:shadow-lg">
+          <div className="border border-gray-700 p-6 rounded-lg hover:border-[#D4AF37] transition-colors">
             <div className="mb-4 flex justify-center">
-              <Users className="h-12 w-12 text-primary-600" />
+              <Users className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Turmas Reduzidas</h3>
-            <p className="text-gray-600">Máximo de 15 alunos para garantir atenção personalizada</p>
+            <h3 className="mb-2 text-xl font-semibold text-center">Turmas Reduzidas</h3>
+            <p className="text-gray-300 text-center">
+              Máximo de 15 alunos para garantir atenção personalizada
+            </p>
           </div>
 
-          <div className="rounded-lg bg-white p-6 text-center shadow-md transition-shadow hover:shadow-lg">
+          <div className="border border-gray-700 p-6 rounded-lg hover:border-[#D4AF37] transition-colors">
             <div className="mb-4 flex justify-center">
-              <Award className="h-12 w-12 text-primary-600" />
+              <Award className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Certificado Reconhecido</h3>
-            <p className="text-gray-600">Certificação válida em todo território nacional</p>
+            <h3 className="mb-2 text-xl font-semibold text-center">Certificado Reconhecido</h3>
+            <p className="text-gray-300 text-center">
+              Certificação válida em todo território nacional
+            </p>
           </div>
 
-          <div className="rounded-lg bg-white p-6 text-center shadow-md transition-shadow hover:shadow-lg">
+          <div className="border border-gray-700 p-6 rounded-lg hover:border-[#D4AF37] transition-colors">
             <div className="mb-4 flex justify-center">
-              <Clock className="h-12 w-12 text-primary-600" />
+              <Clock className="h-12 w-12 text-[#D4AF37]" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Horários Flexíveis</h3>
-            <p className="text-gray-600">Opções de turmas durante a semana e aos sábados</p>
+            <h3 className="mb-2 text-xl font-semibold text-center">Horários Flexíveis</h3>
+            <p className="text-gray-300 text-center">
+              Opções de turmas durante a semana e aos sábados
+            </p>
           </div>
         </div>
       </section>
 
       {/* Course Info Section */}
-      <section className="bg-white py-16">
-        <div className="container-custom">
-          <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">
+      <section className="bg-black py-20 px-8">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-serif text-[#D4AF37] mb-10">
             Áreas de Conhecimento
           </h2>
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
               'Desenvolvimento Frontend',
@@ -96,17 +103,20 @@ const LandingPage: React.FC = () => {
             ].map((area) => (
               <div
                 key={area}
-                className="flex items-center rounded-lg border border-gray-200 p-4 transition-all hover:border-primary-600 hover:shadow-md"
+                className="border border-gray-700 p-6 rounded-lg hover:border-[#D4AF37] transition-colors"
               >
-                <CheckCircle className="mr-3 h-6 w-6 flex-shrink-0 text-primary-600" />
-                <span className="text-lg font-medium text-gray-800">{area}</span>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 flex-shrink-0 text-[#D4AF37]" />
+                  <span className="text-lg text-gray-300">{area}</span>
+                </div>
               </div>
             ))}
           </div>
+
           <div className="mt-10 text-center">
             <button
               onClick={() => setIsInteresseModalOpen(true)}
-              className="rounded-lg bg-primary-600 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-primary-700 hover:shadow-lg"
+              className="bg-[#D4AF37] text-black px-8 py-4 text-lg font-semibold rounded hover:opacity-90 transition-opacity"
             >
               Quero me Inscrever
             </button>
@@ -115,16 +125,18 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Questions Section */}
-      <section className="container-custom py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <MessageCircle className="mx-auto mb-4 h-12 w-12 text-primary-600" />
-          <h2 className="mb-4 text-3xl font-bold text-gray-900">Ainda tem dúvidas?</h2>
-          <p className="mb-8 text-gray-600">
+      <section className="py-20 px-8 max-w-6xl mx-auto">
+        <div className="max-w-2xl mx-auto text-center">
+          <MessageCircle className="mx-auto mb-4 h-12 w-12 text-[#D4AF37]" />
+          <h2 className="text-3xl font-serif text-[#D4AF37] mb-4">
+            Ainda tem dúvidas?
+          </h2>
+          <p className="text-gray-300 mb-8">
             Envie suas perguntas e nossa equipe entrará em contato em breve
           </p>
           <button
             onClick={() => setIsDuvidasModalOpen(true)}
-            className="rounded-lg bg-primary-600 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-primary-700 hover:shadow-lg"
+            className="bg-[#D4AF37] text-black px-8 py-4 text-lg font-semibold rounded hover:opacity-90 transition-opacity"
           >
             Enviar Dúvida
           </button>
@@ -132,8 +144,8 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 py-8 text-white">
-        <div className="container-custom text-center">
+      <footer className="bg-[#0B0B0B] py-8 border-t border-[#D4AF37]">
+        <div className="max-w-6xl mx-auto text-center px-8">
           <p className="text-gray-400">
             © 2024 Sistema de Captura de Leads. Todos os direitos reservados.
           </p>
