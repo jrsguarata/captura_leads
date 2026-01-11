@@ -37,8 +37,8 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-8 max-w-6xl mx-auto">
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-10">
+      <section className="py-12 px-8 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-serif text-[#D4AF37] mb-8">
           O que você vai aprender
         </h2>
 
@@ -86,13 +86,13 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Practical Experience Section */}
-      <section className="bg-black py-20 px-8">
+      <section className="bg-black py-12 px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="border-2 border-[#D4AF37] rounded-lg p-12 bg-gradient-to-br from-black to-gray-900">
-            <h2 className="text-4xl md:text-5xl font-serif text-[#D4AF37] mb-6 leading-tight">
+          <div className="border-2 border-[#D4AF37] rounded-lg p-10 bg-gradient-to-br from-black to-gray-900">
+            <h2 className="text-3xl md:text-4xl font-serif text-[#D4AF37] mb-4 leading-tight">
               1 dia inteiro de atendimento a pacientes reais aplicando as técnicas aprendidas
             </h2>
-            <p className="text-xl text-gray-300 mb-8">
+            <p className="text-lg text-gray-300 mb-6">
               Experiência prática supervisionada para consolidar seu aprendizado
             </p>
             <button
@@ -105,8 +105,41 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Instructors Section */}
+      <section className="py-12 px-8 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-serif text-[#D4AF37] mb-8 text-center">
+          Corpo Docente
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Instrutor 1 */}
+          <div className="border border-gray-700 rounded-lg p-6 hover:border-[#D4AF37] transition-colors">
+            <h3 className="text-2xl text-[#D4AF37] font-semibold mb-3">Dr. Michel Brown</h3>
+            <ul className="space-y-2 text-gray-300">
+              <li>• Especialista</li>
+              <li>• Mestrando em HOF EUA</li>
+              <li>• Professor de Espanha</li>
+              <li>• Speaker e referência em HOF Regenerativa</li>
+            </ul>
+          </div>
+
+          {/* Instrutor 2 */}
+          <div className="border border-gray-700 rounded-lg p-6 hover:border-[#D4AF37] transition-colors">
+            <h3 className="text-2xl text-[#D4AF37] font-semibold mb-3">Marcel Schulman</h3>
+            <ul className="space-y-2 text-gray-300">
+              <li>• Farmacêutico</li>
+              <li>• Cosmetólogo</li>
+              <li>• Mestre pela Espanha</li>
+              <li>• Coordenador de Cursos</li>
+              <li>• Referência</li>
+              <li>• Proprietário da Vita Derme</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* Questions Section */}
-      <section className="py-20 px-8 max-w-6xl mx-auto">
+      <section className="py-12 px-8 max-w-6xl mx-auto">
         <div className="max-w-2xl mx-auto text-center">
           <MessageCircle className="mx-auto mb-4 h-12 w-12 text-[#D4AF37]" />
           <h2 className="text-3xl font-serif text-[#D4AF37] mb-4">
