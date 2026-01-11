@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GraduationCap, Users, Award, Clock, MessageCircle, CheckCircle } from 'lucide-react';
+import { GraduationCap, Users, Award, Clock, MessageCircle } from 'lucide-react';
 import InteresseModal from '../components/InteresseModal';
 import DuvidasModal from '../components/DuvidasModal';
 
@@ -85,35 +85,16 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Course Info Section */}
+      {/* Practical Experience Section */}
       <section className="bg-black py-20 px-8">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-serif text-[#D4AF37] mb-10">
-            Áreas de Conhecimento
-          </h2>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              'Desenvolvimento Frontend',
-              'Desenvolvimento Backend',
-              'Desenvolvimento Mobile',
-              'Data Science e Analytics',
-              'DevOps e Cloud',
-              'Segurança da Informação',
-            ].map((area) => (
-              <div
-                key={area}
-                className="border border-gray-700 p-6 rounded-lg hover:border-[#D4AF37] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-6 w-6 flex-shrink-0 text-[#D4AF37]" />
-                  <span className="text-lg text-gray-300">{area}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10 text-center">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="border-2 border-[#D4AF37] rounded-lg p-12 bg-gradient-to-br from-black to-gray-900">
+            <h2 className="text-4xl md:text-5xl font-serif text-[#D4AF37] mb-6 leading-tight">
+              1 dia inteiro de atendimento a pacientes reais aplicando as técnicas aprendidas
+            </h2>
+            <p className="text-xl text-gray-300 mb-8">
+              Experiência prática supervisionada para consolidar seu aprendizado
+            </p>
             <button
               onClick={() => setIsInteresseModalOpen(true)}
               className="bg-[#D4AF37] text-black px-8 py-4 text-lg font-semibold rounded hover:opacity-90 transition-opacity"
