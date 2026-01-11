@@ -10,16 +10,16 @@ const LandingPage: React.FC = () => {
   return (
     <div className="bg-[#0B0B0B] text-white">
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-8 max-w-6xl mx-auto">
+      <section className="pt-20 pb-16 px-8 max-w-6xl mx-auto text-center">
         <h1 className="text-4xl md:text-5xl font-serif text-[#D4AF37] mb-4 leading-tight">
           Cosmetologia Estética e Regenerativa
         </h1>
 
-        <p className="text-base md:text-lg text-gray-300 max-w-2xl mb-6">
+        <p className="text-base md:text-lg text-gray-300 mb-6 mx-auto">
           Formação presencial avançada em Estética Regenerativa, com foco prático, ciência aplicada e resultados reais.
         </p>
 
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-3 flex-wrap justify-center">
           <button
             onClick={() => setIsInteresseModalOpen(true)}
             className="bg-[#D4AF37] text-black px-6 py-3 font-semibold rounded hover:opacity-90 transition-opacity"
@@ -134,6 +134,37 @@ const LandingPage: React.FC = () => {
               <li>• Referência</li>
               <li>• Proprietário da Vita Derme</li>
             </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Date and Location Section */}
+      <section className="py-10 px-8 bg-black border-t border-gray-800">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="bg-gradient-to-r from-[#D4AF37]/20 to-[#D4AF37]/10 border-2 border-[#D4AF37] rounded-lg p-8">
+            <h2 className="text-2xl md:text-3xl font-serif text-[#D4AF37] mb-4">
+              Próxima Turma
+            </h2>
+            <div className="space-y-3 text-lg md:text-xl text-gray-200">
+              <p className="flex items-center justify-center gap-2">
+                <span className="text-2xl">📅</span>
+                <span className="font-semibold">26 a 28 de março de 2026</span>
+              </p>
+              <p className="flex items-center justify-center gap-2">
+                <span className="text-2xl">📍</span>
+                <span className="font-semibold">São Paulo – SP</span>
+              </p>
+              <p className="flex items-center justify-center gap-2 text-[#D4AF37]">
+                <span className="text-2xl">⏳</span>
+                <span className="font-semibold">Vagas Limitadas</span>
+              </p>
+            </div>
+            <button
+              onClick={() => setIsInteresseModalOpen(true)}
+              className="mt-6 bg-[#D4AF37] text-black px-8 py-3 text-lg font-semibold rounded hover:opacity-90 transition-opacity"
+            >
+              Garanta sua Vaga
+            </button>
           </div>
         </div>
       </section>
