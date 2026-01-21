@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 import { CreateDuvidaDto } from '../types';
+import { useHumanValidation } from '../hooks/useHumanValidation';
 
 interface DuvidasModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface DuvidasModalProps {
 const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [validationError, setValidationError] = useState<string>('');
   const [formData, setFormData] = useState<CreateDuvidaDto>({
     nome: '',
     email: '',
@@ -18,14 +20,35 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
     duvida: '',
   });
 
+  // Hook de validação anti-bot
+  const { validateSubmission, resetValidation, HoneypotField } = useHumanValidation();
+
+  // Reset da validação quando o modal abre
+  useEffect(() => {
+    if (isOpen) {
+      resetValidation();
+      setValidationError('');
+    }
+  }, [isOpen, resetValidation]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setValidationError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationError('');
+
+    // Validação anti-bot
+    const validation = validateSubmission();
+    if (!validation.valid) {
+      setValidationError(validation.message);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -49,6 +72,8 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
     if (!loading) {
       setSuccess(false);
       setFormData({ nome: '', email: '', celular: '', duvida: '' });
+      setValidationError('');
+      resetValidation();
       onClose();
     }
   };
@@ -80,6 +105,9 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Campo Honeypot - invisível para humanos */}
+              <HoneypotField />
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   Nome Completo *
@@ -92,7 +120,7 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
                   required
                   minLength={3}
                   maxLength={255}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                 />
               </div>
 
@@ -104,7 +132,7 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                 />
               </div>
 
@@ -118,7 +146,7 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
                   required
                   pattern="[0-9]{10,11}"
                   placeholder="11987654321"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                 />
                 <p className="mt-1 text-xs text-gray-500">Apenas números, sem espaços</p>
               </div>
@@ -134,10 +162,16 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
                   required
                   minLength={10}
                   rows={4}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                   placeholder="Descreva sua dúvida..."
                 />
               </div>
+
+              {validationError && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                  {validationError}
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <button
@@ -151,7 +185,7 @@ const DuvidasModal: React.FC<DuvidasModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 rounded-lg bg-primary-600 py-3 font-semibold text-white transition-colors hover:bg-primary-700 disabled:bg-gray-400"
+                  className="flex-1 rounded-lg bg-[#D4AF37] py-3 font-semibold text-black transition-colors hover:bg-[#C49F2E] disabled:bg-gray-400 disabled:text-gray-600"
                 >
                   {loading ? 'Enviando...' : 'Enviar Dúvida'}
                 </button>

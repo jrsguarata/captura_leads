@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { GraduationCap, Users, Award, Clock, MessageCircle } from 'lucide-react';
 import InteresseModal from '../components/InteresseModal';
 import DuvidasModal from '../components/DuvidasModal';
+import heroImage from '../images/dna.jpg';
+import fotoMarcelo from '../images/fotoMarcelo.jpeg';
+import fotoMichel from '../images/fotoMichel.jpeg';
+
 
 const LandingPage: React.FC = () => {
   const [isInteresseModalOpen, setIsInteresseModalOpen] = useState(false);
@@ -10,37 +14,53 @@ const LandingPage: React.FC = () => {
   return (
     <div className="bg-[#0B0B0B] text-white">
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-8 max-w-6xl mx-auto text-center">
-        <h1 className="text-4xl md:text-5xl font-serif text-[#D4AF37] mb-4 leading-tight">
-          Cosmetologia Estética e Regenerativa
-        </h1>
+          {/* Hero Section com imagem de fundo */}
+          <section
+              className="relative pt-20 pb-16 px-8 text-center bg-cover bg-center"
+              style={{
+                  backgroundImage: `url(${heroImage})`,
+              }}
+          >
+              {/* Overlay escuro */}
+              <div className="absolute inset-0 bg-black/45"></div>
 
-        <p className="text-base md:text-lg text-gray-300 mb-6 mx-auto">
+              {/* Conteúdo */}
+              <div className="relative max-w-6xl mx-auto">
+
+                <h1 className="text-4xl md:text-5xl font-serif text-[#D4AF37] mb-4 leading-tight">
+                     Cosmetologia Estética e Regenerativa
+                </h1>
+
+                <p className="text-base md:text-lg font-semibold text-gray-300 mb-6 mx-auto">
           Formação presencial avançada em Estética Regenerativa, com foco prático, ciência aplicada e resultados reais.
-        </p>
+                </p>
+              </div>
 
-        <div className="flex gap-3 flex-wrap justify-center">
-          <button
-            onClick={() => setIsInteresseModalOpen(true)}
-            className="bg-[#D4AF37] text-black px-6 py-3 font-semibold rounded hover:opacity-90 transition-opacity"
-          >
-            Tenho Interesse
-          </button>
+          </section>
+               <div className="flex gap-3 flex-wrap justify-center">
+                   <button
+                        onClick={() => setIsInteresseModalOpen(true)}
+                        className="bg-[#D4AF37] text-black px-6 py-3 font-semibold rounded hover:opacity-90 transition-opacity"
+                    >
+                            Tenho Interesse
+                    </button>
 
-          <button
-            onClick={() => setIsDuvidasModalOpen(true)}
-            className="border border-[#D4AF37] text-[#D4AF37] px-6 py-3 rounded hover:bg-[#D4AF37] hover:text-black transition-all"
-          >
-            Tenho Dúvida
-          </button>
-        </div>
-      </section>
+                    <button
+                        onClick={() => setIsDuvidasModalOpen(true)}
+                        className="border border-[#D4AF37] text-[#D4AF37] px-6 py-3 rounded hover:bg-[#D4AF37] hover:text-black transition-all"
+                     >
+                            Tenho Dúvida
+                        </button>
+              </div>
+
+
 
       {/* Benefits Section */}
       <section className="py-10 px-8 max-w-6xl mx-auto border-t border-gray-800">
         <h2 className="text-2xl md:text-3xl font-serif text-[#D4AF37] mb-6">
           O que você vai aprender
-        </h2>
+                      </h2>
+
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="border border-gray-700 p-4 rounded-lg hover:border-[#D4AF37] transition-colors">
@@ -83,14 +103,15 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
         </div>
-      </section>
+
+          </section>
 
       {/* Practical Experience Section */}
       <section className="py-10 px-8 bg-black border-t border-gray-800">
         <div className="max-w-4xl mx-auto text-center">
           <div className="border-2 border-[#D4AF37] rounded-lg p-8 bg-gradient-to-br from-black to-gray-900">
             <h2 className="text-2xl md:text-3xl font-serif text-[#D4AF37] mb-3 leading-tight">
-              1 dia inteiro de atendimento a pacientes reais aplicando as técnicas aprendidas
+              1 dia inteiro de atendimento a modelos reais aplicando as técnicas aprendidas
             </h2>
             <p className="text-base text-gray-300 mb-5">
               Experiência prática supervisionada para consolidar seu aprendizado
@@ -113,7 +134,13 @@ const LandingPage: React.FC = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Instrutor 1 */}
-          <div className="border border-gray-700 rounded-lg p-5 hover:border-[#D4AF37] transition-colors">
+          <div className="border border-gray-700 rounded-lg p-8 text-center hover:border-[#D4AF37] transition-colors">
+                      {/* Tag de imagem adicionada aqui */}
+                      <img
+                          src={fotoMichel}
+                          alt="Michel Brown"
+                          className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
+                      />
             <h3 className="text-xl text-[#D4AF37] font-semibold mb-3">Dr. Michel Brown</h3>
             <ul className="space-y-1 text-sm text-gray-300">
               <li>• Especialista</li>
@@ -124,8 +151,15 @@ const LandingPage: React.FC = () => {
           </div>
 
           {/* Instrutor 2 */}
-          <div className="border border-gray-700 rounded-lg p-5 hover:border-[#D4AF37] transition-colors">
-            <h3 className="text-xl text-[#D4AF37] font-semibold mb-3">Marcel Schulman</h3>
+                  <div className="border border-gray-700 rounded-lg p-8 text-center
+hover:border-[#D4AF37] transition-colors">
+                      {/* Tag de imagem adicionada aqui */}
+                      <img
+                          src={fotoMarcelo}
+                          alt="Marcelo Schulman"
+                          className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
+                      />
+            <h3 className="text-xl text-[#D4AF37] font-semibold mb-3">Marcelo Schulman</h3>
             <ul className="space-y-1 text-sm text-gray-300">
               <li>• Farmacêutico</li>
               <li>• Cosmetólogo</li>

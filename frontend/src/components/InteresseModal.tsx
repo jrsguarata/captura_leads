@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 import { Qualificacao, CreateInteressadoDto, CreateRespostasBatchDto } from '../types';
+import { useHumanValidation } from '../hooks/useHumanValidation';
 
 interface InteresseModalProps {
   isOpen: boolean;
@@ -13,6 +14,10 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [perguntas, setPerguntas] = useState<Qualificacao[]>([]);
   const [interessadoId, setInteressadoId] = useState<string>('');
+  const [validationError, setValidationError] = useState<string>('');
+
+  // Hook de validação anti-bot
+  const { validateSubmission, resetValidation, HoneypotField } = useHumanValidation();
 
   // Dados do formulário inicial
   const [formData, setFormData] = useState<CreateInteressadoDto>({
@@ -30,6 +35,14 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen, step]);
 
+  // Reset da validação quando o modal abre
+  useEffect(() => {
+    if (isOpen) {
+      resetValidation();
+      setValidationError('');
+    }
+  }, [isOpen, resetValidation]);
+
   const loadPerguntas = async () => {
     try {
       const response = await api.get('/qualificacao/active');
@@ -41,6 +54,7 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setValidationError('');
   };
 
   const handleRespostaChange = (questao: string, resposta: string) => {
@@ -49,6 +63,15 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationError('');
+
+    // Validação anti-bot
+    const validation = validateSubmission();
+    if (!validation.valid) {
+      setValidationError(validation.message);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -102,6 +125,8 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
     setFormData({ nome: '', email: '', celular: '' });
     setRespostas({});
     setInteressadoId('');
+    setValidationError('');
+    resetValidation();
     onClose();
   };
 
@@ -121,6 +146,9 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
           <>
             <h2 className="mb-6 text-2xl font-bold text-gray-900">Tenho Interesse</h2>
             <form onSubmit={handleSubmitForm} className="space-y-4">
+              {/* Campo Honeypot - invisível para humanos */}
+              <HoneypotField />
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   Nome Completo *
@@ -133,7 +161,7 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
                   required
                   minLength={3}
                   maxLength={255}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                 />
               </div>
 
@@ -145,7 +173,7 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
                   value={formData.email}
                   onChange={handleFormChange}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                 />
               </div>
 
@@ -159,15 +187,21 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
                   required
                   pattern="[0-9]{10,11}"
                   placeholder="11987654321"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                 />
                 <p className="mt-1 text-xs text-gray-500">Apenas números, sem espaços</p>
               </div>
 
+              {validationError && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                  {validationError}
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-primary-600 py-3 font-semibold text-white transition-colors hover:bg-primary-700 disabled:bg-gray-400"
+                className="w-full rounded-lg bg-[#D4AF37] py-3 font-semibold text-black transition-colors hover:bg-[#C49F2E] disabled:bg-gray-400 disabled:text-gray-600"
               >
                 {loading ? 'Enviando...' : 'Continuar'}
               </button>
@@ -189,7 +223,7 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
                       value={respostas[pergunta.questao] || ''}
                       onChange={(e) => handleRespostaChange(pergunta.questao, e.target.value)}
                       required={pergunta.obrigatoriedade}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                     >
                       <option value="">Selecione uma opção</option>
                       {pergunta.opcoes.split(';').map((opcao) => (
@@ -204,7 +238,7 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
                       onChange={(e) => handleRespostaChange(pergunta.questao, e.target.value)}
                       required={pergunta.obrigatoriedade}
                       rows={3}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-2 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] placeholder:text-gray-400"
                     />
                   )}
                 </div>
@@ -213,7 +247,7 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-primary-600 py-3 font-semibold text-white transition-colors hover:bg-primary-700 disabled:bg-gray-400"
+                className="w-full rounded-lg bg-[#D4AF37] py-3 font-semibold text-black transition-colors hover:bg-[#C49F2E] disabled:bg-gray-400 disabled:text-gray-600"
               >
                 {loading ? 'Enviando...' : 'Enviar Respostas'}
               </button>
@@ -230,7 +264,7 @@ const InteresseModal: React.FC<InteresseModalProps> = ({ isOpen, onClose }) => {
             </p>
             <button
               onClick={handleClose}
-              className="rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-700"
+              className="rounded-lg bg-[#D4AF37] px-6 py-3 font-semibold text-black transition-colors hover:bg-[#C49F2E]"
             >
               Fechar
             </button>
