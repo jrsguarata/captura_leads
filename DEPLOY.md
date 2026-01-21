@@ -205,14 +205,165 @@ heroku config:set VITE_API_URL=https://captura-leads-api.herokuapp.com -a captur
 
 ---
 
-## Alternativa: Deploy via GitHub Integration
+## Deploy via GitHub Integration (Recomendado)
 
-1. Acesse o dashboard do Heroku
-2. Vá em cada app > Deploy > Deployment method
-3. Selecione "GitHub"
-4. Conecte seu repositório
-5. Configure "Manual Deploy" para deploy sob demanda
-6. Clique em "Deploy Branch" quando quiser fazer deploy
+Esta é a forma mais simples e visual de fazer deploy sob demanda, sem precisar usar a linha de comando.
+
+### Passo 1: Criar os Apps no Heroku Dashboard
+
+1. Acesse https://dashboard.heroku.com
+2. Clique em **"New"** > **"Create new app"**
+3. Crie o app do backend:
+   - App name: `captura-leads-api` (ou outro nome disponível)
+   - Region: United States (ou Europe)
+   - Clique em **"Create app"**
+4. Repita para criar o app do frontend:
+   - App name: `captura-leads-web`
+
+### Passo 2: Adicionar PostgreSQL ao Backend
+
+1. No dashboard, acesse o app `captura-leads-api`
+2. Vá na aba **"Resources"**
+3. Em "Add-ons", pesquise por **"Heroku Postgres"**
+4. Selecione o plano **"Essential-0"** ($5/mês)
+5. Clique em **"Submit Order Form"**
+
+> A variável `DATABASE_URL` será configurada automaticamente.
+
+### Passo 3: Configurar Variáveis de Ambiente
+
+#### Backend (`captura-leads-api`):
+
+1. No dashboard do app, vá em **"Settings"**
+2. Clique em **"Reveal Config Vars"**
+3. Adicione as seguintes variáveis:
+
+| KEY | VALUE |
+|-----|-------|
+| `NODE_ENV` | `production` |
+| `JWT_SECRET` | `sua_chave_jwt_super_secreta_aqui` |
+| `JWT_EXPIRATION` | `1d` |
+| `JWT_REFRESH_EXPIRATION` | `7d` |
+| `CORS_ORIGIN` | `https://captura-leads-web.herokuapp.com` |
+
+#### Frontend (`captura-leads-web`):
+
+1. No dashboard do app, vá em **"Settings"**
+2. Clique em **"Reveal Config Vars"**
+3. Adicione:
+
+| KEY | VALUE |
+|-----|-------|
+| `VITE_API_URL` | `https://captura-leads-api.herokuapp.com` |
+
+### Passo 4: Conectar ao GitHub
+
+#### Para o Backend:
+
+1. No dashboard do app `captura-leads-api`, vá em **"Deploy"**
+2. Em "Deployment method", clique em **"GitHub"**
+3. Clique em **"Connect to GitHub"** (autorize se necessário)
+4. Pesquise pelo repositório `captura_leads` e clique em **"Connect"**
+5. **IMPORTANTE**: Em "App connected to GitHub", configure:
+   - Clique em **"Enable Automatic Deploys"** se quiser deploy automático (opcional)
+   - Ou deixe apenas o deploy manual
+
+#### Para o Frontend:
+
+Repita o mesmo processo para o app `captura-leads-web`.
+
+### Passo 5: Configurar o Diretório de Build (Monorepo)
+
+Como o projeto tem frontend e backend no mesmo repositório, você precisa informar ao Heroku qual pasta usar.
+
+#### Para o Backend:
+
+1. No dashboard do app `captura-leads-api`, vá em **"Settings"**
+2. Em "Buildpacks", clique em **"Add buildpack"**
+3. Primeiro, adicione: `https://github.com/timanovsky/subdir-heroku-buildpack`
+4. Depois, adicione: `heroku/nodejs`
+5. **Importante**: O buildpack `subdir-heroku-buildpack` deve ficar PRIMEIRO na lista
+6. Em "Config Vars", adicione:
+
+| KEY | VALUE |
+|-----|-------|
+| `PROJECT_PATH` | `backend` |
+
+#### Para o Frontend:
+
+1. No dashboard do app `captura-leads-web`, vá em **"Settings"**
+2. Em "Buildpacks", adicione na ordem:
+   - `https://github.com/timanovsky/subdir-heroku-buildpack`
+   - `heroku/nodejs`
+3. Em "Config Vars", adicione:
+
+| KEY | VALUE |
+|-----|-------|
+| `PROJECT_PATH` | `frontend` |
+
+### Passo 6: Fazer Deploy Manual
+
+1. No dashboard de cada app, vá em **"Deploy"**
+2. Role até a seção **"Manual deploy"**
+3. Selecione a branch `main`
+4. Clique em **"Deploy Branch"**
+5. Aguarde o build completar (você pode ver os logs em tempo real)
+
+### Passo 7: Executar Seed Inicial (Primeira vez)
+
+Após o primeiro deploy do backend:
+
+1. No dashboard do app `captura-leads-api`
+2. Clique em **"More"** (canto superior direito) > **"Run console"**
+3. Digite: `npm run seed`
+4. Clique em **"Run"**
+
+### Fluxo de Deploy Sob Demanda
+
+Sempre que quiser fazer um novo deploy:
+
+1. Faça commit e push das alterações para o GitHub:
+   ```bash
+   git add .
+   git commit -m "Sua mensagem"
+   git push origin main
+   ```
+
+2. Acesse o dashboard do Heroku
+3. Vá no app que deseja atualizar (backend ou frontend)
+4. Clique em **"Deploy"** > **"Deploy Branch"**
+
+### Verificar se o Deploy Funcionou
+
+1. **Backend**: Acesse `https://captura-leads-api.herokuapp.com/api`
+   - Deve mostrar a documentação Swagger
+
+2. **Frontend**: Acesse `https://captura-leads-web.herokuapp.com`
+   - Deve mostrar a landing page
+
+### Diagrama do Fluxo
+
+```
+┌─────────────┐     push      ┌─────────────┐
+│   Seu PC    │ ───────────▶  │   GitHub    │
+│  (código)   │               │ (repositório)│
+└─────────────┘               └──────┬──────┘
+                                     │
+                        ┌────────────┴────────────┐
+                        │                         │
+                        ▼                         ▼
+               ┌────────────────┐       ┌────────────────┐
+               │ captura-leads  │       │ captura-leads  │
+               │     -api       │       │     -web       │
+               │   (Heroku)     │       │   (Heroku)     │
+               └───────┬────────┘       └────────────────┘
+                       │
+                       ▼
+               ┌────────────────┐
+               │   PostgreSQL   │
+               │   (Add-on)     │
+               └────────────────┘
+```
 
 ---
 
