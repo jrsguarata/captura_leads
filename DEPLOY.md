@@ -387,6 +387,72 @@ Sempre que quiser fazer um novo deploy:
 
 ---
 
+## Adicionar Colaboradores
+
+Para permitir que outros desenvolvedores façam alterações no código e deploy, você precisa dar acesso em **duas plataformas**: GitHub e Heroku.
+
+### Passo 1: Adicionar Colaborador no GitHub
+
+1. Acesse seu repositório: `https://github.com/seu-usuario/captura_leads`
+2. Clique em **Settings** (Configurações)
+3. No menu lateral, clique em **Collaborators**
+4. Clique em **Add people**
+5. Digite o **username** ou **email** do colaborador
+6. Selecione a permissão **Write** (permite push e merge)
+7. Clique em **Add to this repository**
+8. O colaborador receberá um convite por email que precisa aceitar
+
+#### Níveis de Permissão no GitHub
+
+| Permissão | O que pode fazer |
+|-----------|------------------|
+| **Read** | Apenas visualizar o código |
+| **Triage** | Gerenciar issues e PRs |
+| **Write** | Push direto, criar branches, merge |
+| **Maintain** | Gerenciar repo sem acesso a configurações sensíveis |
+| **Admin** | Acesso total, incluindo configurações |
+
+> **Recomendação**: Use **Write** para desenvolvedores que precisam alterar código.
+
+### Passo 2: Adicionar Colaborador no Heroku
+
+1. Acesse https://dashboard.heroku.com
+2. Entre no app (`captura-leads-api` ou `captura-leads-web`)
+3. Vá em **Access**
+4. Clique em **Add collaborator**
+5. Digite o **email** do colaborador (deve ter conta no Heroku)
+6. Ele receberá um convite por email
+
+> **Nota**: Colaboradores no Heroku podem fazer deploy, ver logs e reiniciar dynos. Não podem excluir o app nem alterar billing.
+
+### Resumo de Permissões Necessárias
+
+| Plataforma | Permissão | O que pode fazer |
+|------------|-----------|------------------|
+| GitHub | **Write** | Push código, criar branches, merge |
+| Heroku | **Collaborator** | Deploy, ver logs, reiniciar dynos |
+
+> **Importante**: Adicione o colaborador nas **duas plataformas** para que ele tenha autonomia completa de desenvolvimento e deploy.
+
+### Fluxo do Colaborador
+
+Após receber e aceitar os convites:
+
+```bash
+# Clonar o repositório
+git clone https://github.com/seu-usuario/captura_leads.git
+
+# Fazer alterações
+git add .
+git commit -m "Minha alteração"
+git push origin main
+
+# Deploy via Heroku Dashboard
+# Acesse o app no Heroku > Deploy > Deploy Branch
+```
+
+---
+
 ## Troubleshooting
 
 ### Erro de build no backend
