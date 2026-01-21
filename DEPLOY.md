@@ -29,6 +29,26 @@ brew tap heroku/brew && brew install heroku
 
 ---
 
+## Já tem PostgreSQL no Heroku?
+
+Se você já possui um banco PostgreSQL criado no Heroku, **pule a etapa de criação do add-on**. O que você precisa fazer:
+
+1. **Verificar a DATABASE_URL**: O Heroku já configura automaticamente a variável `DATABASE_URL` quando você tem um add-on PostgreSQL. Verifique com:
+   ```bash
+   heroku config:get DATABASE_URL -a seu-app-backend
+   ```
+
+2. **Anexar o banco ao app do backend** (se necessário): Se o PostgreSQL está em outro app, você pode anexá-lo:
+   ```bash
+   heroku addons:attach nome-do-addon-postgres -a captura-leads-api
+   ```
+
+3. **A aplicação já está configurada** para usar `DATABASE_URL` automaticamente em produção. Não é necessário configurar variáveis individuais como `DB_HOST`, `DB_PORT`, etc.
+
+4. **SSL está habilitado**: A configuração já inclui `ssl: { rejectUnauthorized: false }` necessário para conexões PostgreSQL no Heroku.
+
+---
+
 ## Passo 1: Login no Heroku
 
 ```bash
