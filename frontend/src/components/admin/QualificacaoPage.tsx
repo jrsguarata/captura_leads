@@ -8,8 +8,11 @@ const QualificacaoPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedPergunta, setSelectedPergunta] = useState<Qualificacao | null>(null);
   const [editForm, setEditForm] = useState({ questao: '', obrigatoriedade: false, opcoes: '' });
+  const [createForm, setCreateForm] = useState({ questao: '', obrigatoriedade: false, opcoes: '' });
+  const [createLoading, setCreateLoading] = useState(false);
 
   useEffect(() => {
     loadPerguntas();
@@ -67,11 +70,39 @@ const QualificacaoPage: React.FC = () => {
     }
   };
 
+  const handleOpenCreateModal = () => {
+    setCreateForm({ questao: '', obrigatoriedade: false, opcoes: '' });
+    setCreateModalOpen(true);
+  };
+
+  const handleSaveCreate = async () => {
+    if (!createForm.questao.trim()) {
+      alert('Por favor, preencha a questão');
+      return;
+    }
+
+    setCreateLoading(true);
+    try {
+      await api.post('/qualificacao', createForm);
+      setCreateModalOpen(false);
+      setCreateForm({ questao: '', obrigatoriedade: false, opcoes: '' });
+      loadPerguntas();
+    } catch (error: any) {
+      console.error('Erro ao criar pergunta:', error);
+      alert(error.response?.data?.message || 'Erro ao criar pergunta');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Perguntas de Qualificação</h2>
-        <button className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700">
+        <button
+          onClick={handleOpenCreateModal}
+          className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
+        >
           <Plus className="h-5 w-5" />
           Nova Pergunta
         </button>
@@ -331,6 +362,77 @@ const QualificacaoPage: React.FC = () => {
                 className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
               >
                 Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Criação */}
+      {createModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Nova Pergunta</h3>
+              <button
+                onClick={() => setCreateModalOpen(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Questão *</label>
+                <textarea
+                  value={createForm.questao}
+                  onChange={(e) => setCreateForm({ ...createForm, questao: e.target.value })}
+                  rows={3}
+                  placeholder="Digite a pergunta..."
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={createForm.obrigatoriedade}
+                    onChange={(e) => setCreateForm({ ...createForm, obrigatoriedade: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Resposta obrigatória</span>
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Opções (separadas por ponto e vírgula)
+                </label>
+                <input
+                  type="text"
+                  value={createForm.opcoes}
+                  onChange={(e) => setCreateForm({ ...createForm, opcoes: e.target.value })}
+                  placeholder="Opção 1;Opção 2;Opção 3"
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Deixe em branco para permitir texto livre
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => setCreateModalOpen(false)}
+                disabled={createLoading}
+                className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:bg-gray-100"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveCreate}
+                disabled={createLoading}
+                className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                {createLoading ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
           </div>
