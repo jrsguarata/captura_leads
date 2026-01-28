@@ -74,6 +74,42 @@ export class InteressadosService {
     await this.interessadosRepository.softRemove(interessado);
   }
 
+  async deactivate(id: string, currentUserId: string): Promise<Interessado> {
+    const interessado = await this.interessadosRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!interessado) {
+      throw new NotFoundException(`Interessado com ID ${id} não encontrado`);
+    }
+
+    interessado.isActive = false;
+    interessado.desativadoPor = currentUserId;
+    interessado.desativadoEm = new Date();
+    interessado.alteradoPor = currentUserId;
+
+    return this.interessadosRepository.save(interessado);
+  }
+
+  async activate(id: string, currentUserId: string): Promise<Interessado> {
+    const interessado = await this.interessadosRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!interessado) {
+      throw new NotFoundException(`Interessado com ID ${id} não encontrado`);
+    }
+
+    interessado.isActive = true;
+    interessado.desativadoPor = undefined;
+    interessado.desativadoEm = undefined;
+    interessado.alteradoPor = currentUserId;
+
+    return this.interessadosRepository.save(interessado);
+  }
+
   async findByStatus(status: InteressadoStatus): Promise<Interessado[]> {
     return this.interessadosRepository.find({
       where: { status },

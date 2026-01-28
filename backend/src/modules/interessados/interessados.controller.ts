@@ -88,6 +88,24 @@ export class InteressadosController {
     return this.interessadosService.update(id, updateInteressadoDto, user.id);
   }
 
+  @Patch(':id/deactivate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Desativar interessado' })
+  @ApiResponse({ status: 200, description: 'Interessado desativado com sucesso' })
+  deactivate(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.interessadosService.deactivate(id, user.id);
+  }
+
+  @Patch(':id/activate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Ativar interessado' })
+  @ApiResponse({ status: 200, description: 'Interessado ativado com sucesso' })
+  activate(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.interessadosService.activate(id, user.id);
+  }
+
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

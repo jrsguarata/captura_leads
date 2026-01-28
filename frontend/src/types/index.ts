@@ -59,10 +59,13 @@ export interface Interessado {
   email: string;
   celular: string;
   status: InteressadoStatus;
+  isActive: boolean;
   criadoEm: string;
   alteradoEm: string;
   criadoPor?: string;
   alteradoPor?: string;
+  desativadoPor?: string;
+  desativadoEm?: string;
 }
 
 export interface CreateInteressadoDto {

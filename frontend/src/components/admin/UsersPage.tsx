@@ -10,8 +10,11 @@ const UsersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [editForm, setEditForm] = useState({ nome: '', email: '', perfil: UserRole.OPERATOR });
+  const [createForm, setCreateForm] = useState({ nome: '', email: '', password: '', perfil: UserRole.OPERATOR });
+  const [createError, setCreateError] = useState('');
   const [userNamesMap, setUserNamesMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -75,11 +78,32 @@ const UsersPage: React.FC = () => {
     }
   };
 
+  const handleOpenCreate = () => {
+    setCreateForm({ nome: '', email: '', password: '', perfil: UserRole.OPERATOR });
+    setCreateError('');
+    setCreateModalOpen(true);
+  };
+
+  const handleSaveCreate = async () => {
+    setCreateError('');
+    try {
+      await api.post('/users', createForm);
+      setCreateModalOpen(false);
+      loadUsers();
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao criar usuário';
+      setCreateError(typeof message === 'string' ? message : message.join(', '));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Gerenciar Usuários</h2>
-        <button className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700">
+        <button
+          onClick={handleOpenCreate}
+          className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
+        >
           <UserPlus className="h-5 w-5" />
           Novo Usuário
         </button>
@@ -341,6 +365,84 @@ const UsersPage: React.FC = () => {
                 className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
               >
                 Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal de Criação */}
+      {createModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Novo Usuário</h3>
+              <button
+                onClick={() => setCreateModalOpen(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {createError && (
+              <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                {createError}
+              </div>
+            )}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nome</label>
+                <input
+                  type="text"
+                  value={createForm.nome}
+                  onChange={(e) => setCreateForm({ ...createForm, nome: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  placeholder="Nome completo"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                <input
+                  type="email"
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Senha</label>
+                <input
+                  type="password"
+                  value={createForm.password}
+                  onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  placeholder="Mínimo 8 caracteres"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Perfil</label>
+                <select
+                  value={createForm.perfil}
+                  onChange={(e) => setCreateForm({ ...createForm, perfil: e.target.value as UserRole })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                >
+                  <option value={UserRole.OPERATOR}>Operador</option>
+                  <option value={UserRole.ADMIN}>Administrador</option>
+                </select>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => setCreateModalOpen(false)}
+                className="rounded-lg bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveCreate}
+                className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
+              >
+                Criar Usuário
               </button>
             </div>
           </div>

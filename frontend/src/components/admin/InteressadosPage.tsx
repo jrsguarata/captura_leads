@@ -98,9 +98,8 @@ const InteressadosPage: React.FC = () => {
 
   const toggleStatus = async (interessadoId: string, currentStatus: boolean) => {
     try {
-      if (currentStatus) {
-        await api.delete(`/interessados/${interessadoId}`);
-      }
+      const endpoint = currentStatus ? 'deactivate' : 'activate';
+      await api.patch(`/interessados/${interessadoId}/${endpoint}`);
       loadInteressados();
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
