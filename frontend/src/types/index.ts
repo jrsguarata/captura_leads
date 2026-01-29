@@ -66,6 +66,28 @@ export interface Interessado {
   alteradoPor?: string;
   desativadoPor?: string;
   desativadoEm?: string;
+
+  // Dados Pessoais
+  cpf?: string;
+  cep?: string;
+  logradouro?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  numero?: string;
+  complemento?: string;
+
+  // Dados Profissionais
+  profissao?: string;
+  registroConselho?: string;
+  tempoExperiencia?: string;
+  cepProfissional?: string;
+  logradouroProfissional?: string;
+  bairroProfissional?: string;
+  cidadeProfissional?: string;
+  estadoProfissional?: string;
+  numeroProfissional?: string;
+  complementoProfissional?: string;
 }
 
 export interface CreateInteressadoDto {
@@ -138,4 +160,14 @@ export interface CreateFollowupDto {
   interessadoId: string;
   texto: string;
   canal: FollowupCanal;
+}
+
+export interface ViaCepResponse {
+  cep: string;
+  logradouro: string;
+  complemento: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+  erro?: boolean;
 }

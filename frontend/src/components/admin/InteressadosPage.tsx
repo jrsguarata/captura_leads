@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { UserPlus, Eye, Edit, UserX, UserCheck, X } from 'lucide-react';
 import api from '../../services/api';
 import { Interessado, InteressadoStatus, Resposta, Followup, FollowupCanal, User } from '../../types';
+import { maskCpf, maskCep, unmask } from '../../utils/masks';
+import { fetchAddressByCep } from '../../services/viacep';
 
 const statusOptions = [
   { value: 'lead', label: 'Lead' },
@@ -27,13 +29,69 @@ const canalOptions = [
   { value: FollowupCanal.EMAIL, label: 'Email' },
 ];
 
+const inputClass =
+  'mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
+
+interface EditFormState {
+  nome: string;
+  email: string;
+  celular: string;
+  status: InteressadoStatus;
+  cpf: string;
+  cep: string;
+  logradouro: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  numero: string;
+  complemento: string;
+  profissao: string;
+  registroConselho: string;
+  tempoExperiencia: string;
+  cepProfissional: string;
+  logradouroProfissional: string;
+  bairroProfissional: string;
+  cidadeProfissional: string;
+  estadoProfissional: string;
+  numeroProfissional: string;
+  complementoProfissional: string;
+}
+
+const emptyEditForm: EditFormState = {
+  nome: '',
+  email: '',
+  celular: '',
+  status: InteressadoStatus.LEAD,
+  cpf: '',
+  cep: '',
+  logradouro: '',
+  bairro: '',
+  cidade: '',
+  estado: '',
+  numero: '',
+  complemento: '',
+  profissao: '',
+  registroConselho: '',
+  tempoExperiencia: '',
+  cepProfissional: '',
+  logradouroProfissional: '',
+  bairroProfissional: '',
+  cidadeProfissional: '',
+  estadoProfissional: '',
+  numeroProfissional: '',
+  complementoProfissional: '',
+};
+
+type ViewTab = 'dados' | 'pessoais' | 'profissionais' | 'respostas' | 'followups';
+type EditTab = 'basicos' | 'pessoais' | 'profissionais' | 'followup';
+
 const InteressadosPage: React.FC = () => {
   const [interessados, setInteressados] = useState<Interessado[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedInteressado, setSelectedInteressado] = useState<Interessado | null>(null);
-  const [editForm, setEditForm] = useState({ nome: '', email: '', celular: '', status: InteressadoStatus.LEAD });
+  const [editForm, setEditForm] = useState<EditFormState>(emptyEditForm);
 
   // Estados para respostas e follow-ups
   const [respostas, setRespostas] = useState<Resposta[]>([]);
@@ -42,13 +100,20 @@ const InteressadosPage: React.FC = () => {
   const [userNamesMap, setUserNamesMap] = useState<Record<string, string>>({});
 
   // Estado para aba ativa no modal de visualização
-  const [activeTab, setActiveTab] = useState<'dados' | 'respostas' | 'followups'>('dados');
+  const [activeTab, setActiveTab] = useState<ViewTab>('dados');
+
+  // Estado para aba ativa no modal de edição
+  const [editActiveTab, setEditActiveTab] = useState<EditTab>('basicos');
 
   // Estado para novo follow-up (no modal de edição)
   const [novoFollowup, setNovoFollowup] = useState({
     texto: '',
     canal: FollowupCanal.WHATSAPP,
   });
+
+  // Estados para loading do ViaCEP
+  const [loadingCep, setLoadingCep] = useState(false);
+  const [loadingCepProf, setLoadingCepProf] = useState(false);
 
   useEffect(() => {
     loadInteressados();
@@ -108,7 +173,7 @@ const InteressadosPage: React.FC = () => {
 
   const handleView = async (interessado: Interessado) => {
     setSelectedInteressado(interessado);
-    setActiveTab('dados'); // Resetar para primeira aba
+    setActiveTab('dados');
     setViewModalOpen(true);
     await loadInteressadoDetails(interessado.id);
   };
@@ -120,24 +185,50 @@ const InteressadosPage: React.FC = () => {
       email: interessado.email,
       celular: interessado.celular,
       status: interessado.status,
+      cpf: interessado.cpf || '',
+      cep: interessado.cep || '',
+      logradouro: interessado.logradouro || '',
+      bairro: interessado.bairro || '',
+      cidade: interessado.cidade || '',
+      estado: interessado.estado || '',
+      numero: interessado.numero || '',
+      complemento: interessado.complemento || '',
+      profissao: interessado.profissao || '',
+      registroConselho: interessado.registroConselho || '',
+      tempoExperiencia: interessado.tempoExperiencia || '',
+      cepProfissional: interessado.cepProfissional || '',
+      logradouroProfissional: interessado.logradouroProfissional || '',
+      bairroProfissional: interessado.bairroProfissional || '',
+      cidadeProfissional: interessado.cidadeProfissional || '',
+      estadoProfissional: interessado.estadoProfissional || '',
+      numeroProfissional: interessado.numeroProfissional || '',
+      complementoProfissional: interessado.complementoProfissional || '',
     });
+    setEditActiveTab('basicos');
     setEditModalOpen(true);
     await loadInteressadoDetails(interessado.id);
-    // Limpar form de follow-up
-    setNovoFollowup({
-      texto: '',
-      canal: FollowupCanal.WHATSAPP,
-    });
+    setNovoFollowup({ texto: '', canal: FollowupCanal.WHATSAPP });
   };
 
   const handleSaveEdit = async () => {
     if (!selectedInteressado) return;
 
     try {
-      // Salvar alterações do interessado
-      await api.patch(`/interessados/${selectedInteressado.id}`, editForm);
+      const payload = {
+        ...editForm,
+        cpf: unmask(editForm.cpf) || undefined,
+        cep: unmask(editForm.cep) || undefined,
+        cepProfissional: unmask(editForm.cepProfissional) || undefined,
+      };
 
-      // Se houver texto no follow-up, salvá-lo também
+      // Remover campos vazios para não sobrescrever com string vazia
+      const cleanPayload: Record<string, string | undefined> = {};
+      for (const [key, value] of Object.entries(payload)) {
+        cleanPayload[key] = value === '' ? undefined : (value as string | undefined);
+      }
+
+      await api.patch(`/interessados/${selectedInteressado.id}`, cleanPayload);
+
       if (novoFollowup.texto.trim()) {
         await api.post('/followup', {
           interessadoId: selectedInteressado.id,
@@ -154,6 +245,44 @@ const InteressadosPage: React.FC = () => {
     }
   };
 
+  const handleCepBlur = async () => {
+    const cepDigits = unmask(editForm.cep);
+    if (cepDigits.length !== 8) return;
+
+    setLoadingCep(true);
+    const address = await fetchAddressByCep(cepDigits);
+    setLoadingCep(false);
+
+    if (address) {
+      setEditForm((prev: EditFormState) => ({
+        ...prev,
+        logradouro: address.logradouro || prev.logradouro,
+        bairro: address.bairro || prev.bairro,
+        cidade: address.localidade || prev.cidade,
+        estado: address.uf || prev.estado,
+      }));
+    }
+  };
+
+  const handleCepProfBlur = async () => {
+    const cepDigits = unmask(editForm.cepProfissional);
+    if (cepDigits.length !== 8) return;
+
+    setLoadingCepProf(true);
+    const address = await fetchAddressByCep(cepDigits);
+    setLoadingCepProf(false);
+
+    if (address) {
+      setEditForm((prev: EditFormState) => ({
+        ...prev,
+        logradouroProfissional: address.logradouro || prev.logradouroProfissional,
+        bairroProfissional: address.bairro || prev.bairroProfissional,
+        cidadeProfissional: address.localidade || prev.cidadeProfissional,
+        estadoProfissional: address.uf || prev.estadoProfissional,
+      }));
+    }
+  };
+
   const getUserName = (userId?: string) => {
     if (!userId) return 'N/A';
     return userNamesMap[userId] || 'Usuário não encontrado';
@@ -166,6 +295,32 @@ const InteressadosPage: React.FC = () => {
   const getStatusLabel = (status: InteressadoStatus) => {
     return statusOptions.find((s) => s.value === status)?.label || status;
   };
+
+  const renderViewTabButton = (tab: ViewTab, label: string) => (
+    <button
+      onClick={() => setActiveTab(tab)}
+      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+        activeTab === tab
+          ? 'border-primary-600 text-primary-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  const renderEditTabButton = (tab: EditTab, label: string) => (
+    <button
+      onClick={() => setEditActiveTab(tab)}
+      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+        editActiveTab === tab
+          ? 'border-primary-600 text-primary-600'
+          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div className="space-y-6">
@@ -306,36 +461,11 @@ const InteressadosPage: React.FC = () => {
             {/* Abas */}
             <div className="border-b border-gray-200 mb-6">
               <nav className="flex -mb-px space-x-8">
-                <button
-                  onClick={() => setActiveTab('dados')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'dados'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Dados Básicos
-                </button>
-                <button
-                  onClick={() => setActiveTab('respostas')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'respostas'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Respostas ({respostas.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('followups')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'followups'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  Follow-ups ({followups.length})
-                </button>
+                {renderViewTabButton('dados', 'Dados Básicos')}
+                {renderViewTabButton('pessoais', 'Dados Pessoais')}
+                {renderViewTabButton('profissionais', 'Dados Profissionais')}
+                {renderViewTabButton('respostas', `Respostas (${respostas.length})`)}
+                {renderViewTabButton('followups', `Follow-ups (${followups.length})`)}
               </nav>
             </div>
 
@@ -377,6 +507,136 @@ const InteressadosPage: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700">Criado em</label>
                         <p className="mt-1 text-sm text-gray-900">
                           {new Date(selectedInteressado.criadoEm).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Aba: Dados Pessoais (Visualização) */}
+                {activeTab === 'pessoais' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">CPF</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.cpf ? maskCpf(selectedInteressado.cpf) : 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">CEP</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.cep ? maskCep(selectedInteressado.cep) : 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Logradouro</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.logradouro || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Número</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.numero || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Complemento</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.complemento || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Bairro</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.bairro || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Cidade</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.cidade || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Estado</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.estado || 'Não informado'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Aba: Dados Profissionais (Visualização) */}
+                {activeTab === 'profissionais' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Profissão</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.profissao || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Registro no Conselho</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.registroConselho || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Tempo de Experiência</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.tempoExperiencia || 'Não informado'}
+                        </p>
+                      </div>
+                    </div>
+                    <hr className="my-4" />
+                    <h5 className="text-sm font-semibold text-gray-700">Endereço Profissional</h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">CEP</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.cepProfissional
+                            ? maskCep(selectedInteressado.cepProfissional)
+                            : 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Logradouro</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.logradouroProfissional || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Número</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.numeroProfissional || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Complemento</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.complementoProfissional || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Bairro</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.bairroProfissional || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Cidade</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.cidadeProfissional || 'Não informado'}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Estado</label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {selectedInteressado.estadoProfissional || 'Não informado'}
                         </p>
                       </div>
                     </div>
@@ -446,7 +706,7 @@ const InteressadosPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Edição com Follow-up */}
+      {/* Modal de Edição com 4 Abas */}
       {editModalOpen && selectedInteressado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto p-4">
           <div className="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl my-8">
@@ -460,88 +720,365 @@ const InteressadosPage: React.FC = () => {
               </button>
             </div>
 
+            {/* Abas de Edição */}
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="flex -mb-px space-x-8">
+                {renderEditTabButton('basicos', 'Dados Básicos')}
+                {renderEditTabButton('pessoais', 'Dados Pessoais')}
+                {renderEditTabButton('profissionais', 'Dados Profissionais')}
+                {renderEditTabButton('followup', 'Follow-up')}
+              </nav>
+            </div>
+
             {loadingDetails ? (
               <div className="flex justify-center py-8">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
               </div>
             ) : (
               <>
-                {/* Dados para Edição */}
-                <div className="space-y-4 mb-6">
-                  <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">Dados Básicos</h4>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Nome</label>
-                    <input
-                      type="text"
-                      value={editForm.nome}
-                      onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    />
+                {/* Aba: Dados Básicos */}
+                {editActiveTab === 'basicos' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Nome</label>
+                      <input
+                        type="text"
+                        value={editForm.nome}
+                        onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Celular</label>
+                      <input
+                        type="text"
+                        value={editForm.celular}
+                        onChange={(e) => setEditForm({ ...editForm, celular: e.target.value })}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Status</label>
+                      <select
+                        value={editForm.status}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, status: e.target.value as InteressadoStatus })
+                        }
+                        className={inputClass}
+                      >
+                        {statusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">E-mail</label>
-                    <input
-                      type="email"
-                      value={editForm.email}
-                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Celular</label>
-                    <input
-                      type="text"
-                      value={editForm.celular}
-                      onChange={(e) => setEditForm({ ...editForm, celular: e.target.value })}
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Status</label>
-                    <select
-                      value={editForm.status}
-                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value as InteressadoStatus })}
-                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    >
-                      {statusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                )}
 
-                {/* Adicionar Follow-up */}
-                <div className="space-y-4 border-t pt-4 mb-6">
-                  <h4 className="text-lg font-semibold text-gray-800">Adicionar Follow-up</h4>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Canal</label>
-                    <select
-                      value={novoFollowup.canal}
-                      onChange={(e) => setNovoFollowup({ ...novoFollowup, canal: e.target.value as FollowupCanal })}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    >
-                      {canalOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                {/* Aba: Dados Pessoais */}
+                {editActiveTab === 'pessoais' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">CPF</label>
+                        <input
+                          type="text"
+                          value={maskCpf(editForm.cpf)}
+                          onChange={(e) => setEditForm({ ...editForm, cpf: unmask(e.target.value) })}
+                          placeholder="000.000.000-00"
+                          maxLength={14}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          CEP {loadingCep && <span className="text-primary-600 text-xs">(buscando...)</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={maskCep(editForm.cep)}
+                          onChange={(e) => setEditForm({ ...editForm, cep: unmask(e.target.value) })}
+                          onBlur={handleCepBlur}
+                          placeholder="00000-000"
+                          maxLength={9}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Logradouro</label>
+                        <input
+                          type="text"
+                          value={editForm.logradouro}
+                          onChange={(e) => setEditForm({ ...editForm, logradouro: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Número</label>
+                        <input
+                          type="text"
+                          value={editForm.numero}
+                          onChange={(e) => setEditForm({ ...editForm, numero: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Complemento</label>
+                        <input
+                          type="text"
+                          value={editForm.complemento}
+                          onChange={(e) => setEditForm({ ...editForm, complemento: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Bairro</label>
+                        <input
+                          type="text"
+                          value={editForm.bairro}
+                          onChange={(e) => setEditForm({ ...editForm, bairro: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Cidade</label>
+                        <input
+                          type="text"
+                          value={editForm.cidade}
+                          onChange={(e) => setEditForm({ ...editForm, cidade: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Estado</label>
+                        <input
+                          type="text"
+                          value={editForm.estado}
+                          onChange={(e) => setEditForm({ ...editForm, estado: e.target.value.toUpperCase() })}
+                          maxLength={2}
+                          placeholder="UF"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Texto do Follow-up (opcional)
-                    </label>
-                    <textarea
-                      value={novoFollowup.texto}
-                      onChange={(e) => setNovoFollowup({ ...novoFollowup, texto: e.target.value })}
-                      rows={4}
-                      placeholder="Descreva o contato realizado... (será salvo junto com as alterações)"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    />
+                )}
+
+                {/* Aba: Dados Profissionais */}
+                {editActiveTab === 'profissionais' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Profissão</label>
+                        <input
+                          type="text"
+                          value={editForm.profissao}
+                          onChange={(e) => setEditForm({ ...editForm, profissao: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Registro no Conselho</label>
+                        <input
+                          type="text"
+                          value={editForm.registroConselho}
+                          onChange={(e) => setEditForm({ ...editForm, registroConselho: e.target.value })}
+                          placeholder="Ex: CRM 12345"
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Tempo de Experiência</label>
+                        <input
+                          type="text"
+                          value={editForm.tempoExperiencia}
+                          onChange={(e) => setEditForm({ ...editForm, tempoExperiencia: e.target.value })}
+                          placeholder="Ex: 5 anos"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+
+                    <hr className="my-2" />
+                    <h5 className="text-sm font-semibold text-gray-700">Endereço Profissional</h5>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          CEP Profissional{' '}
+                          {loadingCepProf && <span className="text-primary-600 text-xs">(buscando...)</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={maskCep(editForm.cepProfissional)}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, cepProfissional: unmask(e.target.value) })
+                          }
+                          onBlur={handleCepProfBlur}
+                          placeholder="00000-000"
+                          maxLength={9}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <p className="text-xs text-gray-500 pb-2">
+                          Preencha o CEP para buscar o endereço automaticamente
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Logradouro</label>
+                      <input
+                        type="text"
+                        value={editForm.logradouroProfissional}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, logradouroProfissional: e.target.value })
+                        }
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Número</label>
+                        <input
+                          type="text"
+                          value={editForm.numeroProfissional}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, numeroProfissional: e.target.value })
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Complemento</label>
+                        <input
+                          type="text"
+                          value={editForm.complementoProfissional}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, complementoProfissional: e.target.value })
+                          }
+                          placeholder="Ex: Sala 501"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Bairro</label>
+                        <input
+                          type="text"
+                          value={editForm.bairroProfissional}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, bairroProfissional: e.target.value })
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Cidade</label>
+                        <input
+                          type="text"
+                          value={editForm.cidadeProfissional}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, cidadeProfissional: e.target.value })
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Estado</label>
+                        <input
+                          type="text"
+                          value={editForm.estadoProfissional}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              estadoProfissional: e.target.value.toUpperCase(),
+                            })
+                          }
+                          maxLength={2}
+                          placeholder="UF"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Aba: Follow-up */}
+                {editActiveTab === 'followup' && (
+                  <div className="space-y-4">
+                    {/* Histórico de follow-ups existentes */}
+                    {followups.length > 0 && (
+                      <div className="space-y-3 max-h-48 overflow-y-auto mb-4">
+                        <h5 className="text-sm font-semibold text-gray-700">Histórico</h5>
+                        {followups.map((followup) => (
+                          <div
+                            key={followup.id}
+                            className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-500"
+                          >
+                            <p className="text-sm text-gray-900 whitespace-pre-wrap mb-2">
+                              {followup.texto}
+                            </p>
+                            <div className="flex items-center gap-3 text-xs text-gray-600">
+                              <span className="font-medium">Canal: {getCanalLabel(followup.canal)}</span>
+                              <span>•</span>
+                              <span>Por: {getUserName(followup.criadoPor)}</span>
+                              <span>•</span>
+                              <span>{new Date(followup.criadoEm).toLocaleString('pt-BR')}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <h5 className="text-sm font-semibold text-gray-700">Novo Follow-up</h5>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Canal</label>
+                      <select
+                        value={novoFollowup.canal}
+                        onChange={(e) =>
+                          setNovoFollowup({ ...novoFollowup, canal: e.target.value as FollowupCanal })
+                        }
+                        className={inputClass}
+                      >
+                        {canalOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Texto do Follow-up (opcional)
+                      </label>
+                      <textarea
+                        value={novoFollowup.texto}
+                        onChange={(e) => setNovoFollowup({ ...novoFollowup, texto: e.target.value })}
+                        rows={4}
+                        placeholder="Descreva o contato realizado... (será salvo junto com as alterações)"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
